@@ -28,7 +28,9 @@ def process_path(file_path):
 
 if __name__ == "__main__":
   ds_train_list = tf.data.Dataset.list_files(os.path.join(BB_HOME, "train/*/*.pgm"))
+  ds_test_list = tf.data.Dataset.list_files(os.path.join(BB_HOME, "test/*/*.pgm"))
   ds_train_labeled = ds_train_list.map(lambda x: tf.numpy_function(process_path, [x], [tf.uint8, tf.int64]), num_parallel_calls=AUTOTUNE)
+  ds_test_labeled = ds_test_list.map(lambda x: tf.numpy_function(process_path, [x], [tf.uint8, tf.int64]), num_parallel_calls=AUTOTUNE)
 
   for image, label in ds_train_labeled.take(4):
       print("Image shape: ", image.numpy().shape)
