@@ -36,11 +36,8 @@ def set_shapes(img, label):
 
 if __name__ == "__main__":
   ds_train_list = tf.data.Dataset.list_files(os.path.join(BB_HOME, "train/*/*.pgm"))
-  ds_test_list = tf.data.Dataset.list_files(os.path.join(BB_HOME, "test/*/*.pgm"))
   train_dataset = ds_train_list.map(lambda x: tf.numpy_function(process_path, [x], [tf.uint8, tf.bool]), num_parallel_calls=AUTOTUNE)
-  test_dataset = ds_test_list.map(lambda x: tf.numpy_function(process_path, [x], [tf.uint8, tf.bool]), num_parallel_calls=AUTOTUNE)
   train_dataset = train_dataset.map(lambda i, l: set_shapes(i, l))
-  test_dataset = test_dataset.map(lambda i, l: set_shapes(i, l))
 
   for image, label in train_dataset.take(1):
     print("--Image shape: ", image)
