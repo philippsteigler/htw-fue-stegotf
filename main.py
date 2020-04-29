@@ -14,7 +14,7 @@ img_width = 512
 img_height = 512
 batch_size = 32
 epochs = 10
-steps_per_epoch = np.ceil(img_count / batch_size)
+steps_per_epoch = np.ceil(img_count / (batch_size * 10))
 
 kernel_hp = np.array(
     [[[ -1], [  2], [ -2], [  2], [ -1]],
