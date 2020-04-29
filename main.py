@@ -8,8 +8,8 @@ import os
 
 AUTOTUNE = tf.data.experimental.AUTOTUNE
 
-bb_path = pathlib.Path("/Users/philipp/BOSSbase")
-img_count = len(list(bb_path.glob("train/*/*.pgm")))
+bb_path = pathlib.Path("/Users/philipp/ALASKA2")
+img_count = len(list(bb_path.glob("train/*/*.jpg")))
 img_width = 512
 img_height = 512
 batch_size = 32
@@ -25,7 +25,7 @@ kernel_hp = np.array(
 
 def get_label(file_path):
   parts = tf.strings.split(file_path, os.path.sep)
-  if parts[-2] == "cover": return 0
+  if parts[-2] == "Cover": return 0
   else: return 1
 
 def get_image(file_path):
@@ -47,11 +47,20 @@ def set_shapes(img, label):
   return img, label
 
 if __name__ == "__main__":
-  ds_train_list = tf.data.Dataset.list_files(os.path.join(bb_path, "train/*/*.pgm"))
+  ds_train_list = tf.data.Dataset.list_files(os.path.join(bb_path, "train/*/*.jpg"))
   train_dataset = ds_train_list.map(lambda x: tf.numpy_function(process_path, [x], [tf.float32, tf.int64]), num_parallel_calls=AUTOTUNE)
   train_dataset = train_dataset.map(lambda i, l: set_shapes(i, l))
 
   print("\nDATASET:", train_dataset.element_spec)
+  
+  '''
+  for image, label in train_dataset.take(10):
+    print(image.numpy())
+    print("Label: ", label.numpy())
+    image = image.numpy().reshape((image.shape[0], -1))
+    plt.imshow(image, "gray")
+    plt.show()
+  '''
 
   model = keras.Sequential([
     keras.layers.Conv2D(64, (7, 7), padding="same", activation="relu", input_shape=(img_width - 4, img_height - 4, 1)),
@@ -71,5 +80,5 @@ if __name__ == "__main__":
   )
 
   print("\nMODEL:", model.summary())
-  train_dataset = train_dataset.shuffle(img_count).repeat(epochs).batch(batch_size)
+  train_dataset = train_dataset.repeat(epochs).batch(batch_size)
   model.fit(train_dataset, epochs=epochs, steps_per_epoch=steps_per_epoch)
