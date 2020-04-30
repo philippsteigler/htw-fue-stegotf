@@ -12,9 +12,9 @@ bb_path = pathlib.Path("/Users/philipp/ALASKA2")
 img_count = len(list(bb_path.glob("train/*/*.jpg")))
 img_width = 512
 img_height = 512
-batch_size = 16
-epochs = 10
-steps_per_epoch = np.ceil(img_count / (batch_size * 50))
+batch_size = 64
+epochs = 15
+steps_per_epoch = np.ceil(img_count / (batch_size * 20))
 
 kernel_hp = np.array(
     [[[ -1], [  2], [ -2], [  2], [ -1]],
@@ -30,6 +30,7 @@ def apply_hpf(image):
 if __name__ == "__main__":
   train_image_gen = keras.preprocessing.image.ImageDataGenerator(
     rescale=1./255,
+    horizontal_flip=True,
     preprocessing_function=apply_hpf
   )
 
@@ -47,10 +48,12 @@ if __name__ == "__main__":
   model = keras.Sequential([
     keras.layers.Conv2D(64, (7, 7), strides=2, padding="same", activation="relu", input_shape=(512, 512, 1)),
     keras.layers.MaxPool2D((2, 2)),
+    keras.layers.Dropout(0.2),
     keras.layers.Conv2D(16, (5, 5), padding="same", activation="relu"),
     keras.layers.MaxPool2D((2, 2)),
+    keras.layers.Dropout(0.2),
     keras.layers.Flatten(),
-    keras.layers.Dense(128, activation="relu"),
+    keras.layers.Dense(256, activation="relu"),
     keras.layers.Dense(128, activation="relu"),
     keras.layers.Dense(1, activation="sigmoid")
   ])
