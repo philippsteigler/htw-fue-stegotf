@@ -14,7 +14,7 @@ img_width = 512
 img_height = 512
 batch_size = 64
 epochs = 15
-steps_per_epoch = np.ceil(img_count / (batch_size * 20))
+steps_per_epoch = np.ceil(img_count / (batch_size))
 
 kernel_hp = np.array(
     [[[ -1], [  2], [ -2], [  2], [ -1]],
@@ -31,6 +31,7 @@ if __name__ == "__main__":
   train_image_gen = keras.preprocessing.image.ImageDataGenerator(
     rescale=1./255,
     horizontal_flip=True,
+    vertical_flip=True,
     preprocessing_function=apply_hpf
   )
 
