@@ -39,11 +39,21 @@ def get_label(file_path):
     label = np.array([1.])
   return label
 
-def get_img(file_path): 
+def load_img_as_ycbcr(file_path):
   image = Image.open(file_path)
   image.draft("YCbCr", None)
   image.load()
   image = np.array(image) / 255.
+  return image
+
+def load_img_as_dct_coef(file_path):
+  jpeg = jio.read(file_path)
+  image = np.dstack(jpeg.coef_arrays)
+  image = np.absolute(image) / 128.
+  return image
+
+def get_img(file_path):
+  image = load_img_as_dct_coef(file_path)
   return image
 
 def process_path(file_path):
