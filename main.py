@@ -4,27 +4,45 @@ import numpy as np
 import matplotlib.pyplot as plt
 from PIL import Image
 import os
+import random
 
 AUTOTUNE = tf.data.experimental.AUTOTUNE
 
-train_path = "/Users/philipp/ALASKA2/train"
-img_count = len(os.listdir(train_path + "/cover") + os.listdir(train_path + "/stego"))
+input_size = 25000 # for each category
+train_path = "/Users/philipp/ALASKA2/train/"
+cover_label = "Cover_75"
+stego_label = "UERD_75"
+
+cover_path = train_path + cover_label
+cover_list = [os.path.abspath(os.path.join(cover_path, p)) for p in os.listdir(cover_path)]
+cover_list = cover_list[:input_size]
+
+stego_path = train_path + stego_label
+stego_list = [os.path.abspath(os.path.join(stego_path, p)) for p in os.listdir(stego_path)]
+stego_list = stego_list[:input_size]
+
+input_list = cover_list + stego_list
+random.shuffle(input_list)
+
+img_count = len(input_list)
 img_width = 512
 img_height = 512
-batch_size = 128
-epochs = 15
+batch_size = 32
+epochs = 50
 steps_per_epoch = img_count // batch_size
 
 def get_label(file_path):
   parts = tf.strings.split(file_path, os.path.sep)
-  if parts[-2] == "cover": 
+  if parts[-2] == cover_label: 
     label = np.array([0.])
   else: 
     label = np.array([1.])
   return label
 
 def get_img(file_path): 
-  image = Image.open(file_path).convert("YCbCr")
+  image = Image.open(file_path)
+  image.draft("YCbCr", None)
+  image.load()
   image = np.array(image) / 255.
   return image
 
@@ -40,7 +58,7 @@ def set_shapes(image, label):
   return image, label
 
 if __name__ == "__main__":
-  ds_train_list = tf.data.Dataset.list_files(os.path.join(train_path, "*/*.jpg"))
+  ds_train_list = tf.data.Dataset.from_tensor_slices(input_list)
   train_dataset = ds_train_list.map(lambda x: tf.numpy_function(process_path, [x], [tf.float64, tf.float64]), num_parallel_calls=AUTOTUNE)
   train_dataset = train_dataset.map(lambda i, l: set_shapes(i, l))
 
@@ -55,31 +73,49 @@ if __name__ == "__main__":
   """
 
   model = keras.Sequential([
-    keras.layers.Conv2D(16, 3, padding="same", activation="relu", input_shape=(img_height, img_width, 3)),
+    keras.layers.Conv2D(32, 5, padding="same", kernel_initializer="he_normal", input_shape=(img_height, img_width, 3)),
+    keras.layers.LeakyReLU(alpha=0.2),
     keras.layers.BatchNormalization(),
-    keras.layers.MaxPool2D(5, strides=2, padding="same"),
+    keras.layers.MaxPool2D(3, strides=2, padding="same"),
 
-    keras.layers.Conv2D(16, 3, padding="same", activation="relu"),
+    keras.layers.Conv2D(16, 3, padding="same", kernel_initializer="he_normal"),
+    keras.layers.LeakyReLU(alpha=0.2),
     keras.layers.BatchNormalization(),
-    keras.layers.MaxPool2D(5, strides=2, padding="same"),
+    keras.layers.MaxPool2D(3, strides=2, padding="same"),
 
-    keras.layers.Conv2D(32, 3, padding="same", activation="relu"),
+    keras.layers.Conv2D(32, 3, padding="same", kernel_initializer="he_normal"),
+    keras.layers.LeakyReLU(alpha=0.2),
     keras.layers.BatchNormalization(),
-    keras.layers.MaxPool2D(5, strides=2, padding="same"),
+    keras.layers.MaxPool2D(3, strides=2, padding="same"),
 
-    keras.layers.Conv2D(64, 3, padding="same", activation="relu"),
+    keras.layers.Conv2D(64, 3, padding="same", kernel_initializer="he_normal"),
+    keras.layers.LeakyReLU(alpha=0.2),
     keras.layers.BatchNormalization(),
-    keras.layers.MaxPool2D(5, strides=2, padding="same"),
+    keras.layers.MaxPool2D(3, strides=2, padding="same"),
 
-    keras.layers.Conv2D(128, 3, padding="same", activation="relu"),
+    keras.layers.Conv2D(128, 3, padding="same", kernel_initializer="he_normal"),
+    keras.layers.LeakyReLU(alpha=0.2),
     keras.layers.BatchNormalization(),
-    keras.layers.MaxPool2D(5, strides=2, padding="same"),
+    keras.layers.MaxPool2D(3, strides=2, padding="same"),
 
-    keras.layers.Conv2D(256, 3, padding="same", activation="relu"),
+    keras.layers.Conv2D(256, 3, padding="same", kernel_initializer="he_normal"),
+    keras.layers.LeakyReLU(alpha=0.2),
+    keras.layers.BatchNormalization(),
+    keras.layers.MaxPool2D(3, strides=2, padding="same"),
+
+    keras.layers.Conv2D(512, 3, padding="same", kernel_initializer="he_normal"),
+    keras.layers.LeakyReLU(alpha=0.2),
     keras.layers.BatchNormalization(),
     keras.layers.GlobalAveragePooling2D(),
 
-    keras.layers.Dense(256, activation="relu"),
+    keras.layers.Dense(512),
+    keras.layers.LeakyReLU(alpha=0.2),
+    keras.layers.Dropout(0.5),
+
+    keras.layers.Dense(256),
+    keras.layers.LeakyReLU(alpha=0.2),
+    keras.layers.Dropout(0.5),
+
     keras.layers.Dense(1, activation="sigmoid")
   ])
 
