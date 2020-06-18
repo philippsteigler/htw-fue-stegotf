@@ -88,27 +88,27 @@ if __name__ == "__main__":
     keras.layers.Conv2D(16, 3, padding="same", kernel_initializer="he_normal"),
     keras.layers.LeakyReLU(alpha=0.2),
     keras.layers.BatchNormalization(),
-    keras.layers.AveragePooling2D(3, strides=2, padding="same"),
+    keras.layers.MaxPool2D(3, strides=2, padding="same"),
 
     keras.layers.Conv2D(32, 3, padding="same", kernel_initializer="he_normal"),
     keras.layers.LeakyReLU(alpha=0.2),
     keras.layers.BatchNormalization(),
-    keras.layers.AveragePooling2D(3, strides=2, padding="same"),
+    keras.layers.MaxPool2D(3, strides=2, padding="same"),
 
     keras.layers.Conv2D(64, 3, padding="same", kernel_initializer="he_normal"),
     keras.layers.LeakyReLU(alpha=0.2),
     keras.layers.BatchNormalization(),
-    keras.layers.AveragePooling2D(3, strides=2, padding="same"),
+    keras.layers.MaxPool2D(3, strides=2, padding="same"),
 
     keras.layers.Conv2D(128, 3, padding="same", kernel_initializer="he_normal"),
     keras.layers.LeakyReLU(alpha=0.2),
     keras.layers.BatchNormalization(),
-    keras.layers.AveragePooling2D(3, strides=2, padding="same"),
+    keras.layers.MaxPool2D(3, strides=2, padding="same"),
 
     keras.layers.Conv2D(256, 3, padding="same", kernel_initializer="he_normal"),
     keras.layers.LeakyReLU(alpha=0.2),
     keras.layers.BatchNormalization(),
-    keras.layers.AveragePooling2D(3, strides=2, padding="same"),
+    keras.layers.MaxPool2D(3, strides=2, padding="same"),
 
     keras.layers.Conv2D(512, 3, padding="same", kernel_initializer="he_normal"),
     keras.layers.LeakyReLU(alpha=0.2),
