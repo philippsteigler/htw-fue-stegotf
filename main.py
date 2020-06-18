@@ -9,7 +9,6 @@ import random
 AUTOTUNE = tf.data.experimental.AUTOTUNE
 
 input_size = 15000 # for each category
-
 train_path = "/tmp/ALASKA2/train/"
 cover_label = "Cover_75"
 stego_label = "UERD_75"
@@ -68,7 +67,6 @@ if __name__ == "__main__":
   train_dataset_list = tf.data.Dataset.from_tensor_slices(input_list)
   train_dataset = train_dataset_list.map(lambda x: tf.numpy_function(process_path, [x], [tf.float64, tf.float64]), num_parallel_calls=AUTOTUNE)
   train_dataset = train_dataset.map(lambda i, l: set_shapes(i, l))
-
 
   print("\nTRAIN DATASET:", train_dataset.element_spec)
 
