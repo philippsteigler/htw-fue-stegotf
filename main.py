@@ -9,7 +9,6 @@ import random
 AUTOTUNE = tf.data.experimental.AUTOTUNE
 
 input_size = 15000 # for each category
-train_test_ratio = 0.9
 
 train_path = "/tmp/ALASKA2/train/"
 cover_label = "Cover_75"
@@ -27,7 +26,6 @@ input_list = cover_list + stego_list
 random.shuffle(input_list)
 
 img_count = len(input_list)
-train_count = (int)(img_count * train_test_ratio)
 img_width = 512
 img_height = 512
 batch_size = 32
@@ -67,16 +65,12 @@ def set_shapes(image, label):
   return image, label
 
 if __name__ == "__main__":
-  train_dataset_list = tf.data.Dataset.from_tensor_slices(input_list[:train_count])
+  train_dataset_list = tf.data.Dataset.from_tensor_slices(input_list)
   train_dataset = train_dataset_list.map(lambda x: tf.numpy_function(process_path, [x], [tf.float64, tf.float64]), num_parallel_calls=AUTOTUNE)
   train_dataset = train_dataset.map(lambda i, l: set_shapes(i, l))
 
-  test_dataset_list = tf.data.Dataset.from_tensor_slices(input_list[train_count:])
-  test_dataset = test_dataset_list.map(lambda x: tf.numpy_function(process_path, [x], [tf.float64, tf.float64]), num_parallel_calls=AUTOTUNE)
-  test_dataset = test_dataset.map(lambda i, l: set_shapes(i, l))
 
   print("\nTRAIN DATASET:", train_dataset.element_spec)
-  print("\nTEST DATASET:", test_dataset.element_spec)
 
   """
   for image, label in train_dataset.take(1):
@@ -113,8 +107,17 @@ if __name__ == "__main__":
     keras.layers.LeakyReLU(alpha=0.2),
     keras.layers.BatchNormalization(),
 
+    keras.layers.Conv2D(16, 5, padding="same", kernel_initializer="he_normal"),
+    keras.layers.LeakyReLU(alpha=0.2),
+    keras.layers.BatchNormalization(),
+
     # type 3
     keras.layers.Conv2D(16, 3, padding="same", kernel_initializer="he_normal"),
+    keras.layers.LeakyReLU(alpha=0.2),
+    keras.layers.BatchNormalization(),
+    keras.layers.MaxPool2D(3, strides=2, padding="same"),
+
+    keras.layers.Conv2D(32, 3, padding="same", kernel_initializer="he_normal"),
     keras.layers.LeakyReLU(alpha=0.2),
     keras.layers.BatchNormalization(),
     keras.layers.MaxPool2D(3, strides=2, padding="same"),
@@ -140,13 +143,13 @@ if __name__ == "__main__":
     keras.layers.BatchNormalization(),
     keras.layers.GlobalAveragePooling2D(),
 
-    keras.layers.Dense(1024),
+    keras.layers.Dense(2048),
     keras.layers.LeakyReLU(alpha=0.2),
-    keras.layers.Dropout(0.25),
+    keras.layers.Dropout(0.5),
 
     keras.layers.Dense(1024),
     keras.layers.LeakyReLU(alpha=0.2),
-    keras.layers.Dropout(0.25),
+    keras.layers.Dropout(0.5),
 
     keras.layers.Dense(1, activation="sigmoid")
   ])
@@ -160,5 +163,5 @@ if __name__ == "__main__":
   )
   
   train_dataset = train_dataset.repeat(epochs).batch(batch_size)
-  model.fit(train_dataset, epochs=epochs, steps_per_epoch=steps_per_epoch)
+  model.fit(train_dataset, batch_size=batch_size, epochs=epochs, steps_per_epoch=steps_per_epoch)
   
