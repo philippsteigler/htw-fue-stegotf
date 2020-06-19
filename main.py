@@ -84,32 +84,7 @@ if __name__ == "__main__":
     keras.layers.LeakyReLU(alpha=0.2),
     keras.layers.BatchNormalization(),
 
-    keras.layers.Conv2D(16, 5, padding="same", kernel_initializer="he_normal"),
-    keras.layers.LeakyReLU(alpha=0.2),
-    keras.layers.BatchNormalization(),
-
     # type 2
-    keras.layers.Conv2D(16, 5, padding="same", kernel_initializer="he_normal"),
-    keras.layers.LeakyReLU(alpha=0.2),
-    keras.layers.BatchNormalization(),
-
-    keras.layers.Conv2D(16, 5, padding="same", kernel_initializer="he_normal"),
-    keras.layers.LeakyReLU(alpha=0.2),
-    keras.layers.BatchNormalization(),
-
-    keras.layers.Conv2D(16, 5, padding="same", kernel_initializer="he_normal"),
-    keras.layers.LeakyReLU(alpha=0.2),
-    keras.layers.BatchNormalization(),
-
-    keras.layers.Conv2D(16, 5, padding="same", kernel_initializer="he_normal"),
-    keras.layers.LeakyReLU(alpha=0.2),
-    keras.layers.BatchNormalization(),
-
-    keras.layers.Conv2D(16, 5, padding="same", kernel_initializer="he_normal"),
-    keras.layers.LeakyReLU(alpha=0.2),
-    keras.layers.BatchNormalization(),
-
-    # type 3
     keras.layers.Conv2D(16, 3, padding="same", kernel_initializer="he_normal"),
     keras.layers.LeakyReLU(alpha=0.2),
     keras.layers.BatchNormalization(),
@@ -135,17 +110,17 @@ if __name__ == "__main__":
     keras.layers.BatchNormalization(),
     keras.layers.MaxPool2D(3, strides=2, padding="same"),
 
-    # type 4
+    # type 3
     keras.layers.Conv2D(512, 3, padding="same", kernel_initializer="he_normal"),
     keras.layers.LeakyReLU(alpha=0.2),
     keras.layers.BatchNormalization(),
     keras.layers.GlobalAveragePooling2D(),
 
-    keras.layers.Dense(2048),
+    keras.layers.Dense(512),
     keras.layers.LeakyReLU(alpha=0.2),
     keras.layers.Dropout(0.5),
 
-    keras.layers.Dense(1024),
+    keras.layers.Dense(256),
     keras.layers.LeakyReLU(alpha=0.2),
     keras.layers.Dropout(0.5),
 
