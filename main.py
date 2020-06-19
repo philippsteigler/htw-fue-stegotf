@@ -116,11 +116,11 @@ if __name__ == "__main__":
     keras.layers.BatchNormalization(),
     keras.layers.GlobalAveragePooling2D(),
 
-    keras.layers.Dense(512),
+    keras.layers.Dense(2048),
     keras.layers.LeakyReLU(alpha=0.2),
     keras.layers.Dropout(0.5),
 
-    keras.layers.Dense(256),
+    keras.layers.Dense(1024),
     keras.layers.LeakyReLU(alpha=0.2),
     keras.layers.Dropout(0.5),
 
