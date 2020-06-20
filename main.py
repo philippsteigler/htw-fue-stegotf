@@ -12,7 +12,7 @@ AUTOTUNE = tf.data.experimental.AUTOTUNE
 input_size = 15000 # for each category
 tt_ratio = 0.9
 
-train_path = "/tmp/ALASKA2/train/"
+train_path = "/Users/philipp/ALASKA2/train/"
 cover_label = "Cover_75"
 stego_label = "UERD_75"
 
@@ -27,14 +27,15 @@ stego_list = stego_list[:input_size]
 input_list = cover_list + stego_list
 random.shuffle(input_list)
 
-img_count = len(input_list)
-train_img_count = (int)(img_count * tt_ratio)
-input_list_train = input_list[:train_img_count]
-input_list_test = input_list[train_img_count:]
+total_img_count = len(input_list)
+train_img_count = (int)(total_img_count * tt_ratio)
 
-print("\nTOTAL IMAGES:", img_count)
-print("\nTRAINING DATA:", len(input_list_train))
-print("\nTEST DATA:", len(input_list_test))
+train_filenames = input_list[:train_img_count]
+test_filenames = input_list[train_img_count:]
+
+print("\nTOTAL IMAGES:", total_img_count)
+print("\nTRAINING DATA:", len(train_filenames))
+print("\nTEST DATA:", len(test_filenames))
 
 img_width = 512
 img_height = 512
@@ -74,18 +75,13 @@ def set_shapes(image, label):
   label.set_shape((1))
   return image, label
 
-if __name__ == "__main__":
-  train_dataset_list = tf.data.Dataset.from_tensor_slices(input_list_train)
-  train_dataset = train_dataset_list.map(lambda x: tf.numpy_function(process_path, [x], [tf.float64, tf.float64]), num_parallel_calls=AUTOTUNE)
-  train_dataset = train_dataset.map(lambda i, l: set_shapes(i, l))
+def load_dataset(filenames):
+  dataset_list = tf.data.Dataset.from_tensor_slices(filenames)
+  dataset = dataset_list.map(lambda x: tf.numpy_function(process_path, [x], [tf.float64, tf.float64]), num_parallel_calls=AUTOTUNE)
+  dataset = dataset.map(lambda i, l: set_shapes(i, l))
+  return dataset
 
-  test_dataset_list = tf.data.Dataset.from_tensor_slices(input_list_test)
-  test_dataset = test_dataset_list.map(lambda x: tf.numpy_function(process_path, [x], [tf.float64, tf.float64]), num_parallel_calls=AUTOTUNE)
-  test_dataset = test_dataset.map(lambda i, l: set_shapes(i, l))
-
-  print("\nTRAIN DATASET:", train_dataset.element_spec)
-  print("\nTEST DATASET:", test_dataset.element_spec)
-
+def generate_model():
   model = keras.Sequential([
     # type 1
     keras.layers.Conv2D(64, 7, padding="same", kernel_initializer="he_normal", strides=2, input_shape=(img_height, img_width, 3)),
@@ -138,14 +134,27 @@ if __name__ == "__main__":
   model.compile(
     optimizer="adam",
     loss=keras.losses.BinaryCrossentropy(),
-    metrics=["accuracy"]
-  )
+    metrics=["accuracy"])
 
+  return model
+
+if __name__ == "__main__":
+  train_dataset = load_dataset(train_filenames)
+  test_dataset = load_dataset(test_filenames)
+
+  print("\nTRAIN DATASET:", train_dataset.element_spec)
+  print("\nTEST DATASET:", test_dataset.element_spec)
+
+  # generate the model
+  model = generate_model()
   print(model.summary())
   
   # train the model
   train_dataset = train_dataset.repeat(epochs).batch(batch_size)
   model.fit(train_dataset, batch_size=batch_size, epochs=epochs, steps_per_epoch=steps_per_epoch)
+
+  # save trained model with weights
+  model.save("/Users/philipp/ALASKA2/model")
   
   # evaluate the model
   test_dataset = test_dataset.batch(batch_size)
