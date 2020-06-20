@@ -12,7 +12,8 @@ AUTOTUNE = tf.data.experimental.AUTOTUNE
 input_size = 15000 # for each category
 tt_ratio = 0.9
 
-train_path = "/Users/philipp/ALASKA2/train/"
+base_path = "/Users/philipp/ALASKA2"
+train_path = base_path + "/train/"
 cover_label = "Cover_75"
 stego_label = "UERD_75"
 
@@ -138,6 +139,20 @@ def generate_model():
 
   return model
 
+def create_cp_callback():
+  checkpoint_path = base_path + "/TF/checkpoints/train_final/cp-{epoch:04d}.ckpt"
+  checkpoint_dir = os.path.dirname(checkpoint_path)
+
+  cp_callback = tf.keras.callbacks.ModelCheckpoint(
+      filepath=checkpoint_path,
+      save_weights_only=True,
+      verbose=1)
+
+  return cp_callback
+
+def get_latest_chechkpoint():
+  return tf.train.latest_checkpoint(base_path + "/TF/checkpoints/train_final")
+
 if __name__ == "__main__":
   train_dataset = load_dataset(train_filenames)
   test_dataset = load_dataset(test_filenames)
@@ -147,14 +162,16 @@ if __name__ == "__main__":
 
   # generate the model
   model = generate_model()
+  #model.load_weights(get_latest_chechkpoint())
   print(model.summary())
   
   # train the model
   train_dataset = train_dataset.repeat(epochs).batch(batch_size)
-  model.fit(train_dataset, batch_size=batch_size, epochs=epochs, steps_per_epoch=steps_per_epoch)
+  cp_callback = create_cp_callback()
+  model.fit(train_dataset, batch_size=batch_size, epochs=epochs, steps_per_epoch=steps_per_epoch, callbacks=[cp_callback])
 
   # save trained model with weights
-  model.save("/Users/philipp/ALASKA2/model")
+  model.save(base_path + "/TF/model")
   
   # evaluate the model
   test_dataset = test_dataset.batch(batch_size)
