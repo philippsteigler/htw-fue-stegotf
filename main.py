@@ -10,6 +10,8 @@ import random
 AUTOTUNE = tf.data.experimental.AUTOTUNE
 
 input_size = 15000 # for each category
+tt_ratio = 0.9
+
 train_path = "/tmp/ALASKA2/train/"
 cover_label = "Cover_75"
 stego_label = "UERD_75"
@@ -26,11 +28,19 @@ input_list = cover_list + stego_list
 random.shuffle(input_list)
 
 img_count = len(input_list)
+train_img_count = (int)(img_count * tt_ratio)
+input_list_train = input_list[:train_img_count]
+input_list_test = input_list[train_img_count:]
+
+print("\nTOTAL IMAGES:", img_count)
+print("\nTRAINING DATA:", len(input_list_train))
+print("\nTEST DATA:", len(input_list_test))
+
 img_width = 512
 img_height = 512
 batch_size = 32
-epochs = 50
-steps_per_epoch = img_count // batch_size
+epochs = 25
+steps_per_epoch = train_img_count // batch_size
 
 def get_label(file_path):
   parts = tf.strings.split(file_path, os.path.sep)
@@ -65,19 +75,16 @@ def set_shapes(image, label):
   return image, label
 
 if __name__ == "__main__":
-  train_dataset_list = tf.data.Dataset.from_tensor_slices(input_list)
+  train_dataset_list = tf.data.Dataset.from_tensor_slices(input_list_train)
   train_dataset = train_dataset_list.map(lambda x: tf.numpy_function(process_path, [x], [tf.float64, tf.float64]), num_parallel_calls=AUTOTUNE)
   train_dataset = train_dataset.map(lambda i, l: set_shapes(i, l))
 
-  print("\nTRAIN DATASET:", train_dataset.element_spec)
+  test_dataset_list = tf.data.Dataset.from_tensor_slices(input_list_test)
+  test_dataset = test_dataset_list.map(lambda x: tf.numpy_function(process_path, [x], [tf.float64, tf.float64]), num_parallel_calls=AUTOTUNE)
+  test_dataset = test_dataset.map(lambda i, l: set_shapes(i, l))
 
-  """
-  for image, label in train_dataset.take(1):
-    plt.figure(figsize=(10,10))
-    plt.title(label.numpy())
-    plt.imshow(image)
-    plt.show()
-  """
+  print("\nTRAIN DATASET:", train_dataset.element_spec)
+  print("\nTEST DATASET:", test_dataset.element_spec)
 
   model = keras.Sequential([
     # type 1
@@ -128,14 +135,18 @@ if __name__ == "__main__":
     keras.layers.Dense(1, activation="sigmoid")
   ])
 
-  print("\nMODEL:", model.summary())
-
   model.compile(
     optimizer="adam",
     loss=keras.losses.BinaryCrossentropy(),
     metrics=["accuracy"]
   )
+
+  print(model.summary())
   
+  # train the model
   train_dataset = train_dataset.repeat(epochs).batch(batch_size)
   model.fit(train_dataset, batch_size=batch_size, epochs=epochs, steps_per_epoch=steps_per_epoch)
   
+  # evaluate the model
+  test_dataset = test_dataset.batch(batch_size)
+  model.evaluate(test_dataset, batch_size=batch_size)
