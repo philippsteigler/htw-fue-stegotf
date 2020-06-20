@@ -3,6 +3,7 @@ from tensorflow import keras
 import numpy as np
 import matplotlib.pyplot as plt
 from PIL import Image
+import jpegio as jio
 import os
 import random
 
