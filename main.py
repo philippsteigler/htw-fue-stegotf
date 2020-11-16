@@ -19,9 +19,13 @@ steps_per_epoch = image_count // batch_size
 
 if __name__ == "__main__":
   # load images from directory
-  train_datagen = keras.preprocessing.image.ImageDataGenerator(rescale=1./255)
+  train_datagen = keras.preprocessing.image.ImageDataGenerator(
+    rescale=1./255,
+    horizontal_flip=True,
+    vertical_flip=True)
 
-  train_generator = train_datagen.flow_from_directory(train_path,
+  train_generator = train_datagen.flow_from_directory(
+    train_path,
     target_size=(img_height, img_width),
     class_mode="binary",
     batch_size=batch_size)
@@ -36,7 +40,8 @@ if __name__ == "__main__":
   model.add(keras.layers.Dropout(0.5))
   model.add(keras.layers.Dense(1, activation="sigmoid"))
 
-  model.compile(optimizer="adam",
+  model.compile(
+    optimizer="adam",
     loss="binary_crossentropy",
     metrics=["accuracy"])
   
