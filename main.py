@@ -30,16 +30,24 @@ if __name__ == "__main__":
     class_mode="binary",
     batch_size=batch_size)
 
-  # generate and ompile model
-  conv_base = efn.EfficientNetB0(weights="imagenet", include_top=False, classes=2, input_shape=(img_height, img_width, 3))
+  # Load EfficientNet
+  conv_base = efn.EfficientNetB3(
+    weights="imagenet",
+    include_top=False,
+    classes=2,
+    input_shape=(img_height, img_width, 3))
+
   conv_base.trainable = False
 
   model = keras.Sequential()
   model.add(conv_base)
+
+  # Add custom top layers for classification
   model.add(keras.layers.GlobalAveragePooling2D())
   model.add(keras.layers.Dropout(0.5))
   model.add(keras.layers.Dense(1, activation="sigmoid"))
 
+  # Compile final model
   model.compile(
     optimizer="adam",
     loss="binary_crossentropy",
