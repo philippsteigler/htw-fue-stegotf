@@ -2,7 +2,7 @@ import os
 os.environ["KERAS_BACKEND"] = "plaidml.keras.backend"
 
 import keras
-import efficientnet.keras as efn 
+import efficientnet.keras as efn
 
 train_path = "/Users/philipp/ALASKA2/train2/"
 cover_label = "Cover_75"
@@ -31,13 +31,13 @@ if __name__ == "__main__":
     batch_size=batch_size)
 
   # Load EfficientNet
-  conv_base = efn.EfficientNetB3(
+  conv_base = efn.EfficientNetB0(
     weights="imagenet",
     include_top=False,
     classes=2,
     input_shape=(img_height, img_width, 3))
 
-  conv_base.trainable = False
+  #conv_base.trainable = False
 
   model = keras.Sequential()
   model.add(conv_base)
