@@ -63,7 +63,7 @@ if __name__ == "__main__":
 
   # train model
   model.fit_generator(
-    train_generator,
+    generator = train_generator,
     steps_per_epoch = train_generator.samples // batch_size,
     validation_data = valid_generator,
     validation_steps = valid_generator.samples // batch_size,
