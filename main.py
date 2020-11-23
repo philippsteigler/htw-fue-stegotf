@@ -20,28 +20,32 @@ if __name__ == "__main__":
   # create train and validation dataset
   image_datagen = keras.preprocessing.image.ImageDataGenerator(
     rescale=1./255,
-    validation_split=0.2)
+    validation_split=0.2
+  )
 
   train_generator = image_datagen.flow_from_directory(
     train_path,
     target_size=(img_height, img_width),
     class_mode="binary",
     batch_size=batch_size,
-    subset="training")
+    subset="training"
+  )
 
   valid_generator = image_datagen.flow_from_directory(
     train_path,
     target_size=(img_height, img_width),
     class_mode="binary",
     batch_size=batch_size,
-    subset="validation")
+    subset="validation"
+  )
 
   # load EfficientNet as base
   conv_base = efn.EfficientNetB0(
     weights="imagenet",
     include_top=False,
     classes=2,
-    input_shape=(img_height, img_width, 3))
+    input_shape=(img_height, img_width, 3)
+  )
 
   #conv_base.trainable = False
 
@@ -53,18 +57,27 @@ if __name__ == "__main__":
   model.add(keras.layers.Dropout(0.5))
   model.add(keras.layers.Dense(1, activation="sigmoid"))
 
+  print(model.summary())
+
   # compile final model
   model.compile(
     optimizer="adam",
     loss="binary_crossentropy",
-    metrics=["accuracy"])
-  
-  print(model.summary())
+    metrics=[
+      keras.metrics.BinaryAccuracy(name="BinAcc"),
+      keras.metrics.AUC(name="AUC"),
+      keras.metrics.TruePositives(name="TP"),
+      keras.metrics.FalsePositives(name="FP"),
+      keras.metrics.TrueNegatives(name="TN"),
+      keras.metrics.FalseNegatives(name="FN")
+    ]
+  )
 
   # train model
   model.fit_generator(
-    generator = train_generator,
+    train_generator,
     steps_per_epoch = train_generator.samples // batch_size,
     validation_data = valid_generator,
     validation_steps = valid_generator.samples // batch_size,
-    epochs = epochs)
+    epochs = epochs
+  )
