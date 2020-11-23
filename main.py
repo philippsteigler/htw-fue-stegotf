@@ -24,7 +24,7 @@ def get_generators(num_classes: int):
   train_generator = image_datagen.flow_from_directory(
     train_path,
     target_size=(img_height, img_width),
-    class_mode=cm
+    class_mode=cm,
     batch_size=batch_size,
     subset="training"
   )
