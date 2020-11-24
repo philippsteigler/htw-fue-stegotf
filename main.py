@@ -13,6 +13,8 @@ epochs = 10
 def get_generators(num_classes: int):
   image_datagen = keras.preprocessing.image.ImageDataGenerator(
     rescale=1./255,
+    horizontal_flip=False,
+    vertical_flip=False,
     validation_split=0.2
   )
 
