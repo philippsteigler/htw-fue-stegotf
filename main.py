@@ -1,10 +1,16 @@
-import os
-os.environ["KERAS_BACKEND"] = "plaidml.keras.backend"
+# IMPORTS FOR AMD GPU
+#import os
+#os.environ["KERAS_BACKEND"] = "plaidml.keras.backend"
+#import keras
+#import efficientnet.keras as efn
 
-import keras
-import efficientnet.keras as efn
+# IMPORTS FOR CUDA (NVIDIA) GPU
+import tensorflow as tf
+AUTOTUNE = tf.data.experimental.AUTOTUNE
+from tensorflow import keras
+import tensorflow.keras.applications.efficientnet as efn
 
-train_path = "/Users/philipp/ALASKA2/train/"
+train_path = "/home/aw4/ALASKA"
 img_width = 512
 img_height = 512
 batch_size = 32
@@ -86,7 +92,7 @@ def get_model(num_classes: int):
 
 if __name__ == "__main__":
   # define class mode: 4 = all classes, 2 = binary
-  num_classes = 2
+  num_classes = 4
 
   train_generator, valid_generator = get_generators(num_classes)
   model = get_model(num_classes)
