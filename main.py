@@ -1,4 +1,5 @@
 import os
+import random
 import numpy as np
 from PIL import Image
 
@@ -11,30 +12,32 @@ import tensorflow.keras.applications.efficientnet as efn
 
 train_path = "/home/aw4/ALASKA"
 images_per_class = 1000
-
 classes = []
 filenames = []
-for subdir in os.listdir(train_path):
-  if os.path.isdir(os.path.join(train_path, subdir)):
-    classes.append(subdir)
-    for image in os.listdir(os.path.join(train_path, subdir))[:images_per_class]:
-      filenames.append(os.path.abspath(os.path.join(train_path, subdir, image)))
-
-num_classes = len(classes)
-print("Found %d images belonging to %d classes" % (len(filenames), num_classes))
-print("Classes: ", classes)
 
 img_width = 512
 img_height = 512
 batch_size = 16
-steps_per_epoch = len(filenames) // batch_size
 epochs = 10
+
+def load_filenames():
+  for subdir in os.listdir(train_path):
+    if os.path.isdir(os.path.join(train_path, subdir)):
+      classes.append(subdir)
+      for image in os.listdir(os.path.join(train_path, subdir))[:images_per_class]:
+        filenames.append(os.path.abspath(os.path.join(train_path, subdir, image)))
+
+  random.shuffle(filenames)
+
+  print("Found %d images belonging to %d classes" % (len(filenames), len(classes)))
+  print("Classes: ", classes)
+  print("Files (example):", filenames[:6])
 
 def get_label(file_path):
   parts = tf.strings.split(file_path, os.path.sep)
   classname = parts[-2].numpy().decode("utf-8")
   index = classes.index(classname)
-  label = np.zeros(num_classes)
+  label = np.zeros(len(classes))
   label[index] = 1.
   return label
 
@@ -53,7 +56,7 @@ def process_path(file_path):
 
 def set_shapes(image, label):
   image.set_shape((img_height, img_width, 3))
-  label.set_shape((num_classes))
+  label.set_shape((len(classes)))
   return image, label
 
 def get_model():
@@ -61,7 +64,7 @@ def get_model():
   conv_base = efn.EfficientNetB0(
     weights = "imagenet",
     include_top = False,
-    classes = num_classes,
+    classes = len(classes),
     input_shape = (img_height, img_width, 3)
   )
 
@@ -71,7 +74,7 @@ def get_model():
   # add custom top layers for classification
   model.add(keras.layers.GlobalAveragePooling2D())
   model.add(keras.layers.Dropout(0.5))
-  model.add(keras.layers.Dense(num_classes, activation="softmax"))
+  model.add(keras.layers.Dense(len(classes), activation="softmax"))
 
   # finally compile the model
   model.compile(
@@ -90,6 +93,9 @@ def get_model():
   return model
 
 if __name__ == "__main__":
+  # First get a list of all filenames
+  load_filenames()
+
   # Create dataset containing all filenames
   filenames_dataset = tf.data.Dataset.from_tensor_slices(filenames)
   # Create labeled dataset from filename dataset
@@ -100,8 +106,9 @@ if __name__ == "__main__":
   train_dataset = train_dataset.batch(batch_size)
   train_dataset = train_dataset.repeat(epochs)
   train_dataset = train_dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
-  
-  print("Dataset Shape:", train_dataset.element_spec)
+  print("Training Dataset Shape:", train_dataset.element_spec)
+
+  # TODO: Add validation dataset
 
   # Load model
   model = get_model()
@@ -110,6 +117,6 @@ if __name__ == "__main__":
   # Start training
   model.fit(
     train_dataset,
-    steps_per_epoch = steps_per_epoch,
+    steps_per_epoch = len(filenames) // batch_size,
     epochs = epochs
   )
