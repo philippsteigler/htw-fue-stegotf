@@ -98,7 +98,7 @@ if __name__ == "__main__":
   model = get_model(num_classes)
   print(model.summary())
 
-  model.fit_generator(
+  model.fit(
     train_generator,
     steps_per_epoch = train_generator.samples // batch_size,
     validation_data = valid_generator,
