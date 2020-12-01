@@ -37,8 +37,8 @@ def get_label(file_path):
   parts = tf.strings.split(file_path, os.path.sep)
   classname = parts[-2].numpy().decode("utf-8")
   index = classes.index(classname)
-  label = np.zeros(len(classes))
-  label[index] = 1.
+  label = np.zeros(len(classes), dtype=np.int8)
+  label[index] = 1
   return label
 
 def get_img(file_path): 
@@ -99,14 +99,13 @@ if __name__ == "__main__":
   # Create dataset containing all filenames
   filenames_dataset = tf.data.Dataset.from_tensor_slices(filenames)
   # Create labeled dataset from filename dataset
-  train_dataset = filenames_dataset.map(lambda x: tf.numpy_function(process_path, [x], [tf.float64, tf.float64]), num_parallel_calls=tf.data.experimental.AUTOTUNE)
-  train_dataset = train_dataset.map(lambda i, l: set_shapes(i, l))
+  train_dataset = filenames_dataset.map(lambda x: tf.numpy_function(process_path, [x], [tf.float64, tf.int8]), num_parallel_calls=tf.data.experimental.AUTOTUNE)
+  #train_dataset = train_dataset.map(lambda i, l: set_shapes(i, l))
   
   train_dataset = train_dataset.shuffle(buffer_size=500, reshuffle_each_iteration=True)
   train_dataset = train_dataset.batch(batch_size)
   train_dataset = train_dataset.repeat(epochs)
   train_dataset = train_dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
-  print("Training Dataset Shape:", train_dataset.element_spec)
 
   # TODO: Add validation dataset
 
