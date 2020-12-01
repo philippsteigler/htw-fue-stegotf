@@ -111,7 +111,10 @@ if __name__ == "__main__":
   # Create training dataset containing all filenames
   train_filenames_dataset = tf.data.Dataset.from_tensor_slices(train_filenames)
   # Create labeled training dataset from filename dataset
-  train_dataset = train_filenames_dataset.map(lambda x: tf.numpy_function(process_path, [x], [tf.float64, tf.int8]), num_parallel_calls=AUTOTUNE)
+  train_dataset = train_filenames_dataset.map(
+    lambda x: tf.numpy_function(process_path, [x], [tf.float64, tf.int8]),
+    num_parallel_calls=AUTOTUNE
+  )
   
   train_dataset = train_dataset.cache()
   train_dataset = train_dataset.shuffle(buffer_size=1000, reshuffle_each_iteration=True)
@@ -122,7 +125,10 @@ if __name__ == "__main__":
   # Create validation dataset containing all filenames
   valid_filenames_dataset = tf.data.Dataset.from_tensor_slices(valid_filenames)
   # Create labeled validation dataset from filename dataset
-  valid_dataset = valid_filenames_dataset.map(lambda x: tf.numpy_function(process_path, [x], [tf.float64, tf.int8]), num_parallel_calls=AUTOTUNE)
+  valid_dataset = valid_filenames_dataset.map(
+    lambda x: tf.numpy_function(process_path, [x], [tf.float64, tf.int8]),
+    num_parallel_calls=AUTOTUNE
+  )
   
   valid_dataset = valid_dataset.cache()
   valid_dataset = valid_dataset.batch(batch_size)
