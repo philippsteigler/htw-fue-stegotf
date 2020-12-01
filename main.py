@@ -144,5 +144,6 @@ if __name__ == "__main__":
     train_dataset,
     epochs=epochs,
     steps_per_epoch=len(train_filenames) // batch_size,
-    validation_data=valid_dataset    
+    validation_data=valid_dataset,
+    validation_steps=len(valid_filenames) // batch_size
   )
