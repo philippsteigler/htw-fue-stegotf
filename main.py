@@ -14,7 +14,8 @@ import tensorflow.keras.applications.efficientnet as efn
 train_path = "/home/aw4/ALASKA"
 images_per_class = 1000
 classes = []
-filenames = []
+train_filenames = []
+valid_filenames = []
 
 img_width = 512
 img_height = 512
@@ -25,14 +26,24 @@ def load_filenames():
   for subdir in os.listdir(train_path):
     if os.path.isdir(os.path.join(train_path, subdir)):
       classes.append(subdir)
-      for image in os.listdir(os.path.join(train_path, subdir))[:images_per_class]:
-        filenames.append(os.path.abspath(os.path.join(train_path, subdir, image)))
+      for image in os.listdir(os.path.join(train_path, subdir))[:int(images_per_class*0.8)]:
+        train_filenames.append(os.path.abspath(os.path.join(train_path, subdir, image)))
+      for image in os.listdir(os.path.join(train_path, subdir))[int(images_per_class*0.8):images_per_class]:
+        valid_filenames.append(os.path.abspath(os.path.join(train_path, subdir, image)))
 
-  random.shuffle(filenames)
+  # Check if valid images are not in training list
+  for image in train_filenames:
+    if image in valid_filenames:
+      print("WARNING: Found duplicate in training and validation list: ", image)
 
-  print("Found %d images belonging to %d classes" % (len(filenames), len(classes)))
+  random.shuffle(train_filenames)
+  random.shuffle(valid_filenames)
+
   print("Classes: ", classes)
-  print("Files (example):", filenames[:6])
+  print("Training: Found %d images belonging to %d classes" % (len(train_filenames), len(classes)))
+  print("--Files (example):", train_filenames[:4])
+  print("Validation: Found %d images belonging to %d classes" % (len(valid_filenames), len(classes)))
+  print("--Files (example):", valid_filenames[:4])
 
 def get_label(file_path):
   parts = tf.strings.split(file_path, os.path.sep)
@@ -97,10 +108,10 @@ if __name__ == "__main__":
   # First get a list of all filenames
   load_filenames()
 
-  # Create dataset containing all filenames
-  filenames_dataset = tf.data.Dataset.from_tensor_slices(filenames)
-  # Create labeled dataset from filename dataset
-  train_dataset = filenames_dataset.map(lambda x: tf.numpy_function(process_path, [x], [tf.float64, tf.int8]), num_parallel_calls=AUTOTUNE)
+  # Create training dataset containing all filenames
+  train_filenames_dataset = tf.data.Dataset.from_tensor_slices(train_filenames)
+  # Create labeled training dataset from filename dataset
+  train_dataset = train_filenames_dataset.map(lambda x: tf.numpy_function(process_path, [x], [tf.float64, tf.int8]), num_parallel_calls=AUTOTUNE)
   
   train_dataset = train_dataset.cache()
   train_dataset = train_dataset.shuffle(buffer_size=1000, reshuffle_each_iteration=True)
@@ -108,7 +119,16 @@ if __name__ == "__main__":
   train_dataset = train_dataset.repeat(epochs)
   train_dataset = train_dataset.prefetch(buffer_size=AUTOTUNE)
 
-  # TODO: Add validation dataset
+  # Create validation dataset containing all filenames
+  valid_filenames_dataset = tf.data.Dataset.from_tensor_slices(valid_filenames)
+  # Create labeled validation dataset from filename dataset
+  valid_dataset = valid_filenames_dataset.map(lambda x: tf.numpy_function(process_path, [x], [tf.float64, tf.int8]), num_parallel_calls=AUTOTUNE)
+  
+  valid_dataset = valid_dataset.cache()
+  valid_dataset = valid_dataset.shuffle(buffer_size=1000, reshuffle_each_iteration=True)
+  valid_dataset = valid_dataset.batch(batch_size)
+  valid_dataset = valid_dataset.repeat(epochs)
+  valid_dataset = valid_dataset.prefetch(buffer_size=AUTOTUNE)
 
   # Load model
   model = get_model()
@@ -117,6 +137,7 @@ if __name__ == "__main__":
   # Start training
   model.fit(
     train_dataset,
-    steps_per_epoch = len(filenames) // batch_size,
-    epochs = epochs
+    epochs=epochs,
+    steps_per_epoch=len(train_filenames) // batch_size,
+    validation_data=valid_dataset    
   )
