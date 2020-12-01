@@ -8,6 +8,7 @@ from PIL import Image
 #import efficientnet.keras as efn
 import tensorflow as tf
 from tensorflow import keras
+AUTOTUNE = tf.data.experimental.AUTOTUNE
 import tensorflow.keras.applications.efficientnet as efn
 
 train_path = "/home/aw4/ALASKA"
@@ -99,13 +100,13 @@ if __name__ == "__main__":
   # Create dataset containing all filenames
   filenames_dataset = tf.data.Dataset.from_tensor_slices(filenames)
   # Create labeled dataset from filename dataset
-  train_dataset = filenames_dataset.map(lambda x: tf.numpy_function(process_path, [x], [tf.float64, tf.int8]), num_parallel_calls=tf.data.experimental.AUTOTUNE)
-  #train_dataset = train_dataset.map(lambda i, l: set_shapes(i, l))
+  train_dataset = filenames_dataset.map(lambda x: tf.numpy_function(process_path, [x], [tf.float64, tf.int8]), num_parallel_calls=AUTOTUNE)
   
-  train_dataset = train_dataset.shuffle(buffer_size=500, reshuffle_each_iteration=True)
+  train_dataset = train_dataset.cache()
+  train_dataset = train_dataset.shuffle(buffer_size=1000, reshuffle_each_iteration=True)
   train_dataset = train_dataset.batch(batch_size)
   train_dataset = train_dataset.repeat(epochs)
-  train_dataset = train_dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
+  train_dataset = train_dataset.prefetch(buffer_size=AUTOTUNE)
 
   # TODO: Add validation dataset
 
