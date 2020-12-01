@@ -125,7 +125,6 @@ if __name__ == "__main__":
   valid_dataset = valid_filenames_dataset.map(lambda x: tf.numpy_function(process_path, [x], [tf.float64, tf.int8]), num_parallel_calls=AUTOTUNE)
   
   valid_dataset = valid_dataset.cache()
-  valid_dataset = valid_dataset.shuffle(buffer_size=1000, reshuffle_each_iteration=True)
   valid_dataset = valid_dataset.batch(batch_size)
   valid_dataset = valid_dataset.repeat(epochs)
   valid_dataset = valid_dataset.prefetch(buffer_size=AUTOTUNE)
