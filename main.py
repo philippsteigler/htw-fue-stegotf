@@ -162,7 +162,7 @@ if __name__ == "__main__":
   cp_callback = tf.keras.callbacks.ModelCheckpoint(
     filepath=checkpoint_path,
     save_weights_only=True,
-    save_freq=5*batch_size,
+    save_freq=5*len(train_filenames),
     verbose=1
   )
 
