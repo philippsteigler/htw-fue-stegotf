@@ -165,3 +165,5 @@ if __name__ == "__main__":
     validation_data=valid_dataset,
     validation_steps=len(valid_filenames) // batch_size
   )
+
+  plot_metrics(history)
