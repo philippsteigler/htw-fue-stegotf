@@ -32,7 +32,6 @@ def load_filenames():
       for image in os.listdir(os.path.join(train_path, subdir))[int(images_per_class*0.8):images_per_class]:
         valid_filenames.append(os.path.abspath(os.path.join(train_path, subdir, image)))
 
-  # Check if valid images are not in training list
   for image in train_filenames:
     if image in valid_filenames:
       print("WARNING: Found duplicate in training and validation list: ", image)
@@ -69,11 +68,10 @@ def process_path(file_path):
 
 def set_shapes(image, label):
   image.set_shape((img_height, img_width, 3))
-  label.set_shape((len(classes)))
+  label.set_shape((len(classes),))
   return image, label
 
 def get_model():
-  # load EfficientNet as base
   conv_base = efn.EfficientNetB0(
     weights = "imagenet",
     include_top = False,
@@ -83,13 +81,10 @@ def get_model():
 
   model = keras.Sequential()
   model.add(conv_base)
-
-  # add custom top layers for classification
   model.add(keras.layers.GlobalAveragePooling2D())
   model.add(keras.layers.Dropout(0.5))
   model.add(keras.layers.Dense(len(classes), activation="softmax"))
 
-  # finally compile the model
   model.compile(
     optimizer="adam",
     loss="categorical_crossentropy",
@@ -135,6 +130,7 @@ if __name__ == "__main__":
     lambda x: tf.numpy_function(process_path, [x], [tf.float64, tf.int8]),
     num_parallel_calls=AUTOTUNE
   )
+  train_dataset = train_dataset.map(lambda i, l: set_shapes(i, l))
   
   train_dataset = train_dataset.shuffle(buffer_size=1000, reshuffle_each_iteration=True)
   train_dataset = train_dataset.batch(batch_size)
@@ -148,6 +144,7 @@ if __name__ == "__main__":
     lambda x: tf.numpy_function(process_path, [x], [tf.float64, tf.int8]),
     num_parallel_calls=AUTOTUNE
   )
+  valid_dataset = valid_dataset.map(lambda i, l: set_shapes(i, l))
 
   valid_dataset = valid_dataset.batch(batch_size)
   valid_dataset = valid_dataset.repeat(epochs)
