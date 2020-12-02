@@ -12,7 +12,8 @@ from tensorflow import keras
 AUTOTUNE = tf.data.experimental.AUTOTUNE
 import tensorflow.keras.applications.efficientnet as efn
 
-train_path = "/home/aw4/ALASKA"
+home_path = "/home/aw4/ALASKA"
+train_path = home_path + "/train"
 images_per_class = 1000
 classes = []
 train_filenames = []
@@ -153,6 +154,17 @@ if __name__ == "__main__":
   # Load model
   model = get_model()
   print(model.summary())
+
+  # Create a callback that saves the model's weights
+  checkpoint_path = home_path + "/session-01/cp-{epoch:04d}.ckpt"
+  checkpoint_dir = os.path.dirname(checkpoint_path)
+
+  cp_callback = tf.keras.callbacks.ModelCheckpoint(
+    filepath=checkpoint_path,
+    save_weights_only=True,
+    save_freq=5*batch_size,
+    verbose=1
+  )
 
   # Start training
   history = model.fit(
