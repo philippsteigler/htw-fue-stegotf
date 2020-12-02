@@ -116,7 +116,6 @@ if __name__ == "__main__":
     num_parallel_calls=AUTOTUNE
   )
   
-  train_dataset = train_dataset.cache()
   train_dataset = train_dataset.shuffle(buffer_size=1000, reshuffle_each_iteration=True)
   train_dataset = train_dataset.batch(batch_size)
   train_dataset = train_dataset.repeat(epochs)
@@ -130,7 +129,6 @@ if __name__ == "__main__":
     num_parallel_calls=AUTOTUNE
   )
   
-  valid_dataset = valid_dataset.cache()
   valid_dataset = valid_dataset.batch(batch_size)
   valid_dataset = valid_dataset.repeat(epochs)
   valid_dataset = valid_dataset.prefetch(buffer_size=AUTOTUNE)
