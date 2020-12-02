@@ -1,6 +1,7 @@
 import os
 import random
 import numpy as np
+import matplotlib.pyplot as plt
 from PIL import Image
 
 #os.environ["KERAS_BACKEND"] = "plaidml.keras.backend"
@@ -104,6 +105,25 @@ def get_model():
 
   return model
 
+def plot_metrics(history):
+  metrics = ['loss', 'auc', 'precision', 'recall']
+  for n, metric in enumerate(metrics):
+    name = metric.replace("_"," ").capitalize()
+    plt.subplot(2,2,n+1)
+    plt.plot(history.epoch, history.history[metric], color=colors[0], label='Train')
+    plt.plot(history.epoch, history.history['val_'+metric],
+             color=colors[0], linestyle="--", label='Val')
+    plt.xlabel('Epoch')
+    plt.ylabel(name)
+    if metric == 'loss':
+      plt.ylim([0, plt.ylim()[1]])
+    elif metric == 'auc':
+      plt.ylim([0.8,1])
+    else:
+      plt.ylim([0,1])
+
+    plt.legend()
+
 if __name__ == "__main__":
   # First get a list of all filenames
   load_filenames()
@@ -128,7 +148,7 @@ if __name__ == "__main__":
     lambda x: tf.numpy_function(process_path, [x], [tf.float64, tf.int8]),
     num_parallel_calls=AUTOTUNE
   )
-  
+
   valid_dataset = valid_dataset.batch(batch_size)
   valid_dataset = valid_dataset.repeat(epochs)
   valid_dataset = valid_dataset.prefetch(buffer_size=AUTOTUNE)
@@ -138,7 +158,7 @@ if __name__ == "__main__":
   print(model.summary())
 
   # Start training
-  model.fit(
+  history = model.fit(
     train_dataset,
     epochs=epochs,
     steps_per_epoch=len(train_filenames) // batch_size,
