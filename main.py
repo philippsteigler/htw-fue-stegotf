@@ -172,7 +172,8 @@ if __name__ == "__main__":
     epochs=epochs,
     steps_per_epoch=len(train_filenames) // batch_size,
     validation_data=valid_dataset,
-    validation_steps=len(valid_filenames) // batch_size
+    validation_steps=len(valid_filenames) // batch_size,
+    callbacks=[cp_callback]
   )
 
   plot_metrics(history)
