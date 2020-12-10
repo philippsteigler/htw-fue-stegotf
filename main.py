@@ -70,7 +70,6 @@ def get_model():
   return model
 
 if __name__ == "__main__":
-
   # Get image dataset generators
   train_gen, valid_gen = get_generators()
   print("Classes: ", train_gen.class_indices)
