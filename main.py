@@ -74,7 +74,6 @@ if __name__ == "__main__":
   train_gen, valid_gen = get_generators()
   print("Classes: ", train_gen.class_indices)
 
-  tf.debugging.set_log_device_placement(True)
   strategy = tf.distribute.MirroredStrategy()
   with strategy.scope():
     # Load model
