@@ -1,7 +1,5 @@
-# Import Tensorflow
 import tensorflow as tf
 from tensorflow import keras
-AUTOTUNE = tf.data.experimental.AUTOTUNE
 import tensorflow.keras.applications.efficientnet as efn
 
 home_path = "/home/phst757c/ALASKA2"
@@ -9,8 +7,8 @@ train_path = "/projects/p_ml_steg_steigler/ALASKA2/train"
 
 img_width = 512
 img_height = 512
-batch_size = 16
-epochs = 50
+batch_size = 32
+epochs = 20
 
 def get_generators():
    image_datagen = keras.preprocessing.image.ImageDataGenerator(
@@ -72,13 +70,17 @@ def get_model():
   return model
 
 if __name__ == "__main__":
+
   # Get image dataset generators
   train_gen, valid_gen = get_generators()
   print("Classes: ", train_gen.class_indices)
 
-  # Load model
-  model = get_model()
-  print(model.summary())
+  tf.debugging.set_log_device_placement(True)
+  strategy = tf.distribute.MirroredStrategy()
+  with strategy.scope():
+    # Load model
+    model = get_model()
+    print(model.summary())
 
   # Create a callback that saves the model's weights
   checkpoint_path = home_path + "/saves/session-01/cp-{epoch:04d}.ckpt"
@@ -88,12 +90,12 @@ if __name__ == "__main__":
     save_freq=train_gen.samples // batch_size,
     verbose=1
   )
-
+  """
   # Load weights from previous session
   checkpoint_dir = home_path + "/saves/session-01/"
   latest = tf.train.latest_checkpoint(checkpoint_dir)
   model.load_weights(latest)
-
+  """
   # Start training
   model.fit(
     train_gen,
@@ -102,4 +104,7 @@ if __name__ == "__main__":
     validation_steps=valid_gen.samples // batch_size,
     epochs=epochs,
     callbacks=[cp_callback]
+    max_queue_size=40,
+    use_multiprocessing=True,
+    workers=8
   )
