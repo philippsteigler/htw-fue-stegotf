@@ -4,8 +4,8 @@ from tensorflow import keras
 AUTOTUNE = tf.data.experimental.AUTOTUNE
 import tensorflow.keras.applications.efficientnet as efn
 
-home_path = "/projects/p_ml_steg_steigler"
-train_path = home_path + "/train"
+home_path = "/home/phst757c/ALASKA2"
+train_path = "/projects/p_ml_steg_steigler/train"
 
 img_width = 512
 img_height = 512
