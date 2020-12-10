@@ -7,7 +7,7 @@ train_path = "/projects/p_ml_steg_steigler/ALASKA2/train"
 
 img_width = 512
 img_height = 512
-batch_size = 32
+batch_size = 64
 epochs = 20
 
 def get_generators():
