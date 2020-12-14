@@ -79,29 +79,29 @@ if __name__ == "__main__":
     model = get_model()
     print(model.summary())
 
-  # Create a callback that saves the model's weights
-  checkpoint_path = home_path + "/saves/session-01/cp-{epoch:04d}.ckpt"
-  cp_callback = tf.keras.callbacks.ModelCheckpoint(
-    filepath=checkpoint_path,
-    save_weights_only=True,
-    save_freq=train_gen.samples // batch_size,
-    verbose=1
-  )
-  """
-  # Load weights from previous session
-  checkpoint_dir = home_path + "/saves/session-01/"
-  latest = tf.train.latest_checkpoint(checkpoint_dir)
-  model.load_weights(latest)
-  """
-  # Start training
-  model.fit(
-    train_gen,
-    steps_per_epoch=train_gen.samples // batch_size,
-    validation_data=valid_gen,
-    validation_steps=valid_gen.samples // batch_size,
-    epochs=epochs,
-    callbacks=[cp_callback],
-    max_queue_size=40,
-    use_multiprocessing=True,
-    workers=8
-  )
+    # Create a callback that saves the model's weights
+    checkpoint_path = home_path + "/saves/session-01/cp-{epoch:04d}.ckpt"
+    cp_callback = tf.keras.callbacks.ModelCheckpoint(
+      filepath=checkpoint_path,
+      save_weights_only=True,
+      save_freq=train_gen.samples // batch_size,
+      verbose=1
+    )
+    """
+    # Load weights from previous session
+    checkpoint_dir = home_path + "/saves/session-01/"
+    latest = tf.train.latest_checkpoint(checkpoint_dir)
+    model.load_weights(latest)
+    """
+    # Start training
+    model.fit(
+      train_gen,
+      steps_per_epoch=train_gen.samples // batch_size,
+      validation_data=valid_gen,
+      validation_steps=valid_gen.samples // batch_size,
+      epochs=epochs,
+      callbacks=[cp_callback],
+      max_queue_size=40,
+      use_multiprocessing=True,
+      workers=8
+    )
