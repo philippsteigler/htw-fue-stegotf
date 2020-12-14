@@ -7,7 +7,7 @@ train_path = "/projects/p_ml_steg_steigler/ALASKA2/train"
 
 img_width = 512
 img_height = 512
-batch_size = 64
+batch_size = 32
 epochs = 20
 
 def get_generators():
@@ -40,10 +40,9 @@ def get_model():
   model = keras.Sequential()
 
   # Load EfficientNet as base
-  conv_base = efn.EfficientNetB0(
+  conv_base = efn.EfficientNetB3(
     weights="imagenet",
     include_top=False,
-    classes=4,
     input_shape=(img_height, img_width, 3)
   )
   model.add(conv_base)
