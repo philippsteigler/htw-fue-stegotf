@@ -2,7 +2,7 @@ import tensorflow as tf
 from utils import data
 from utils import model
 
-home_path = "/home/phst757c/ALASKA2"
+home_path = "/home/phst757c/ALASKA3"
 train_path = "/Users/philipp/ALASKA2/train"
 
 img_width = 512
@@ -18,26 +18,37 @@ if __name__ == "__main__":
   train_ds = data.AlaskaSequence(train_files, class_names, batch_size)
   valid_ds = data.AlaskaSequence(valid_files, class_names, batch_size)
 
-  # Load model
-  model = model.get_model(img_width, img_height)
-  print(model.summary())
+  strategy = tf.distribute.MirroredStrategy()
+  with strategy.scope():
+    # Load model
+    model = model.get_model(img_width, img_height)
+    print(model.summary())
 
-  # Create a callback that saves the model's weights
-  checkpoint_path = home_path + "/saves/session-01/cp-{epoch:04d}.ckpt"
-  cp_callback = tf.keras.callbacks.ModelCheckpoint(
-    filepath=checkpoint_path,
-    save_weights_only=True,
-    save_freq=len(train_files) // batch_size,
-    verbose=1
-  )
+    # Create a callback that saves the model's weights
+    checkpoint_path = home_path + "/saves/session-01/cp-{epoch:04d}.ckpt"
+    cp_callback = tf.keras.callbacks.ModelCheckpoint(
+      filepath=checkpoint_path,
+      save_weights_only=True,
+      save_freq=len(train_files) // batch_size,
+      verbose=1
+    )
 
-  # Start training
-  model.fit(
-    train_ds,
-    steps_per_epoch=len(train_files) // batch_size,
-    validation_data=valid_ds,
-    validation_steps=len(valid_files) // batch_size,
-    epochs=epochs,
-    callbacks=[cp_callback]
-  )
-  
+    """
+    # Load weights from previous session
+    checkpoint_dir = home_path + "/saves/session-01/"
+    latest = tf.train.latest_checkpoint(checkpoint_dir)
+    model.load_weights(latest)
+    """
+
+    # Start training
+    model.fit(
+      train_ds,
+      steps_per_epoch=len(train_files) // batch_size,
+      validation_data=valid_ds,
+      validation_steps=len(valid_files) // batch_size,
+      epochs=epochs,
+      callbacks=[cp_callback],
+      max_queue_size=40,
+      use_multiprocessing=True,
+      workers=8
+    )
