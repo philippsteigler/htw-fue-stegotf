@@ -1,107 +1,43 @@
 import tensorflow as tf
-from tensorflow import keras
-import tensorflow.keras.applications.efficientnet as efn
+from utils import data
+from utils import model
 
 home_path = "/home/phst757c/ALASKA2"
-train_path = "/projects/p_ml_steg_steigler/ALASKA2/train"
+train_path = "/Users/philipp/ALASKA2/train"
 
 img_width = 512
 img_height = 512
 batch_size = 32
 epochs = 20
 
-def get_generators():
-   image_datagen = keras.preprocessing.image.ImageDataGenerator(
-     rescale=1./255,
-     horizontal_flip=False,
-     vertical_flip=False,
-     validation_split=0.1
-   )
-
-   train_generator = image_datagen.flow_from_directory(
-     train_path,
-     target_size=(img_height, img_width),
-     class_mode="categorical",
-     batch_size=batch_size,
-     subset="training"
-   )
-
-   valid_generator = image_datagen.flow_from_directory(
-     train_path,
-     target_size=(img_height, img_width),
-     class_mode="categorical",
-     batch_size=batch_size,
-     subset="validation"
-   )
-
-   return train_generator, valid_generator
-
-def get_model():
-  model = keras.Sequential()
-
-  # Load EfficientNet as base
-  conv_base = efn.EfficientNetB3(
-    weights="imagenet",
-    include_top=False,
-    input_shape=(img_height, img_width, 3)
-  )
-  model.add(conv_base)
-
-  # Add custom top layers for classification
-  model.add(keras.layers.GlobalAveragePooling2D())
-  model.add(keras.layers.Dropout(0.25))
-  model.add(keras.layers.Dense(4, activation="softmax"))
-
-  # Finally compile the model
-  model.compile(
-    optimizer="adam",
-    loss="categorical_crossentropy",
-    metrics=[
-      keras.metrics.CategoricalAccuracy(name="CatAcc"),
-      keras.metrics.AUC(name="AUC"),
-      keras.metrics.TruePositives(name="TP"),
-      keras.metrics.FalsePositives(name="FP"),
-      keras.metrics.TrueNegatives(name="TN"),
-      keras.metrics.FalseNegatives(name="FN")
-    ]
-  )
-
-  return model
-
 if __name__ == "__main__":
-  # Get image dataset generators
-  train_gen, valid_gen = get_generators()
-  print("Classes: ", train_gen.class_indices)
+  # Get classes and paths to images
+  class_names, train_files, valid_files = data.load_files(train_path)
 
-  strategy = tf.distribute.MirroredStrategy()
-  with strategy.scope():
-    # Load model
-    model = get_model()
-    print(model.summary())
+  # Get Sequences as datasets
+  train_ds = data.AlaskaSequence(train_files, class_names, batch_size)
+  valid_ds = data.AlaskaSequence(valid_files, class_names, batch_size)
 
-    # Create a callback that saves the model's weights
-    checkpoint_path = home_path + "/saves/session-01/cp-{epoch:04d}.ckpt"
-    cp_callback = tf.keras.callbacks.ModelCheckpoint(
-      filepath=checkpoint_path,
-      save_weights_only=True,
-      save_freq=train_gen.samples // batch_size,
-      verbose=1
-    )
-    """
-    # Load weights from previous session
-    checkpoint_dir = home_path + "/saves/session-01/"
-    latest = tf.train.latest_checkpoint(checkpoint_dir)
-    model.load_weights(latest)
-    """
-    # Start training
-    model.fit(
-      train_gen,
-      steps_per_epoch=train_gen.samples // batch_size,
-      validation_data=valid_gen,
-      validation_steps=valid_gen.samples // batch_size,
-      epochs=epochs,
-      callbacks=[cp_callback],
-      max_queue_size=40,
-      use_multiprocessing=True,
-      workers=8
-    )
+  # Load model
+  model = model.get_model(img_width, img_height)
+  print(model.summary())
+
+  # Create a callback that saves the model's weights
+  checkpoint_path = home_path + "/saves/session-01/cp-{epoch:04d}.ckpt"
+  cp_callback = tf.keras.callbacks.ModelCheckpoint(
+    filepath=checkpoint_path,
+    save_weights_only=True,
+    save_freq=len(train_files) // batch_size,
+    verbose=1
+  )
+
+  # Start training
+  model.fit(
+    train_ds,
+    steps_per_epoch=len(train_files) // batch_size,
+    validation_data=valid_ds,
+    validation_steps=len(valid_files) // batch_size,
+    epochs=epochs,
+    callbacks=[cp_callback]
+  )
+  
