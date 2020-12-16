@@ -6,7 +6,7 @@ AUTOTUNE = tf.data.experimental.AUTOTUNE
 from utils import model
 
 home_path = pathlib.Path("/home/phst757c/ALASKA3")
-train_path = pathlib.Path("/Users/philipp/ALASKA2/train")
+train_path = pathlib.Path("/projects/p_ml_steg_steigler/ALASKA2/train")
 
 image_count = len(list(train_path.glob("*/*.jpg")))
 class_names = np.array(sorted([item.name for item in train_path.glob("*") if item.name != ".DS_Store"]))
