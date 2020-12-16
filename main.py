@@ -3,26 +3,12 @@ from utils import data
 from utils import model
 
 home_path = "/home/phst757c/ALASKA3"
-train_path = "/projects/p_ml_steg_steigler/ALASKA2/train"
+train_path = "/Users/philipp/ALASKA2/train"
 
 img_width = 512
 img_height = 512
 batch_size = 32
 epochs = 20
-
-# Function for decaying the learning rate
-def decay(epoch):
-  if epoch < 4:
-    return 1e-3
-  elif epoch >= 4 and epoch < 12:
-    return 1e-4
-  else:
-    return 1e-5
-
-# Callback for printing the LR at the end of each epoch
-class PrintLR(keras.callbacks.Callback):
-  def on_epoch_end(self, epoch, logs=None):
-    print("Learning rate for epoch {} is {}".format(epoch + 1, model.optimizer.lr.numpy()))
 
 if __name__ == "__main__":
   # Define distribution stategy
@@ -38,8 +24,8 @@ if __name__ == "__main__":
 
   with strategy.scope():
     # Load model
-    model = model.get_model(img_width, img_height, len(class_names))
-    print(model.summary())
+    cnn = model.get_model(img_width, img_height, len(class_names))
+    print(cnn.summary())
 
     # Create a callback that saves the model's weights
     checkpoint_path = home_path + "/saves/session-01/cp-{epoch:04d}.ckpt"
@@ -59,12 +45,12 @@ if __name__ == "__main__":
 
     callbacks=[
       cp_callback,
-      keras.callbacks.LearningRateScheduler(decay),
-      PrintLR()
+      tf.keras.callbacks.LearningRateScheduler(model.decay),
+      model.PrintLR()
     ]
 
     # Start training
-    model.fit(
+    cnn.fit(
       train_ds,
       steps_per_epoch=len(train_files) // batch_size,
       validation_data=valid_ds,
