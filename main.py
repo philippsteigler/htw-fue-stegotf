@@ -15,7 +15,7 @@ class_names = np.array(sorted([item.name for item in train_path.glob("*") if ite
 
 img_width = 512
 img_height = 512
-batch_size = 64
+batch_size = 32
 epochs = 20
 
 def get_label(file_path):
