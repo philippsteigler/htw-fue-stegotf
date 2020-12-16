@@ -83,9 +83,6 @@ if __name__ == "__main__":
   # Define distribution stategy
   strategy = tf.distribute.MirroredStrategy()
   print("Number of devices: ", strategy.num_replicas_in_sync)
-
-  # Update batch size
-  batch_size = batch_size * strategy.num_replicas_in_sync
   
   # Prepare dataset
   print("Classes: ", class_names)
@@ -101,8 +98,7 @@ if __name__ == "__main__":
   train_ds = train_ds.map(process_path, num_parallel_calls=AUTOTUNE)
   valid_ds = valid_ds.map(process_path, num_parallel_calls=AUTOTUNE)
 
-  print("Batch size is ", batch_size)
-  train_ds = train_ds.cache().shuffle(buffer_size=5000).batch(batch_size).prefetch(buffer_size=AUTOTUNE)
+  train_ds = train_ds.cache().shuffle(buffer_size=AUTOTUNE).batch(batch_size).prefetch(buffer_size=AUTOTUNE)
   valid_ds = valid_ds.batch(batch_size).prefetch(buffer_size=AUTOTUNE)
 
   with strategy.scope():
