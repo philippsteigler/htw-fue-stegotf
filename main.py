@@ -15,7 +15,7 @@ class_names = np.array(sorted([item.name for item in train_path.glob("*") if ite
 
 img_width = 512
 img_height = 512
-batch_size = 32
+batch_size = 64
 epochs = 20
 
 def get_label(file_path):
@@ -32,13 +32,6 @@ def process_path(file_path):
   img = tf.io.read_file(file_path)
   img = decode_img(img)
   return img, label
-
-def configure_for_performance(ds):
-  ds = ds.cache()
-  ds = ds.shuffle(buffer_size=1000)
-  ds = ds.batch(batch_size)
-  ds = ds.prefetch(buffer_size=AUTOTUNE)
-  return ds
 
 def get_model():
   model = keras.Sequential()
@@ -72,32 +65,54 @@ def get_model():
 
   return model
 
+# Function for decaying the learning rate.
+def decay(epoch):
+  if epoch < 3:
+    return 1e-3
+  elif epoch >= 3 and epoch < 7:
+    return 1e-4
+  else:
+    return 1e-5
+
+# Callback for printing the LR at the end of each epoch.
+class PrintLR(keras.callbacks.Callback):
+  def on_epoch_end(self, epoch, logs=None):
+    print("Learning rate for epoch {} is {}".format(epoch + 1, model.optimizer.lr.numpy()))
+
 if __name__ == "__main__":
+  # Define distribution stategy
   strategy = tf.distribute.MirroredStrategy()
+  print("Number of devices: ", strategy.num_replicas_in_sync)
+
+  # Update batch size
+  batch_size = batch_size * strategy.num_replicas_in_sync
+  
+  # Prepare dataset
+  print("Classes: ", class_names)
+  print("Total images: ", image_count)
+
+  list_ds = tf.data.Dataset.list_files(str(train_path/"*/*"), shuffle=False)
+  list_ds = list_ds.shuffle(image_count, reshuffle_each_iteration=False)
+
+  val_size = int(image_count * 0.1)
+  train_ds = list_ds.skip(val_size)
+  valid_ds = list_ds.take(val_size)
+
+  train_ds = train_ds.map(process_path, num_parallel_calls=AUTOTUNE)
+  valid_ds = valid_ds.map(process_path, num_parallel_calls=AUTOTUNE)
+
+  print("Batch size is ", batch_size)
+  train_ds = train_ds.cache().shuffle(buffer_size=5000).batch(batch_size).prefetch(buffer_size=AUTOTUNE)
+  valid_ds = valid_ds.batch(batch_size).prefetch(buffer_size=AUTOTUNE)
+
   with strategy.scope():
-    print("Classes: ", class_names)
-    print("Total images: ", image_count)
-
-    list_ds = tf.data.Dataset.list_files(str(train_path/"*/*"), shuffle=False)
-    list_ds = list_ds.shuffle(image_count, reshuffle_each_iteration=False)
-
-    val_size = int(image_count * 0.1)
-    train_ds = list_ds.skip(val_size)
-    valid_ds = list_ds.take(val_size)
-
-    train_ds = train_ds.map(process_path, num_parallel_calls=AUTOTUNE)
-    valid_ds = valid_ds.map(process_path, num_parallel_calls=AUTOTUNE)
-
-    train_ds = configure_for_performance(train_ds)
-    valid_ds = configure_for_performance(valid_ds)
-
     # Load model
     model = get_model()
     print(model.summary())
 
     # Create a callback that saves the model's weights
     checkpoint_path = home_path/"saves/session-01/cp-{epoch:04d}.ckpt"
-    cp_callback = tf.keras.callbacks.ModelCheckpoint(
+    cp_callback = keras.callbacks.ModelCheckpoint(
       filepath=checkpoint_path,
       save_weights_only=True,
       save_freq=(image_count-val_size) // batch_size,
@@ -111,11 +126,16 @@ if __name__ == "__main__":
     model.load_weights(latest)
     """
 
+    callbacks=[
+      cp_callback,
+      keras.callbacks.LearningRateScheduler(decay),
+      PrintLR()
+    ],
+
     # Start training
     model.fit(
       train_ds,
       validation_data=valid_ds,
       epochs=epochs,
-      callbacks=[cp_callback],
-      max_queue_size=40,
+      callbacks=callbacks
     )
