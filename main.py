@@ -133,5 +133,8 @@ if __name__ == "__main__":
       train_ds,
       validation_data=valid_ds,
       epochs=epochs,
-      callbacks=callbacks
+      callbacks=callbacks,
+      max_queue_size=128,
+      use_multiprocessing=True,
+      workers=8
     )
