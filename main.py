@@ -2,7 +2,7 @@ import tensorflow as tf
 from utils import data
 from utils import model
 
-home_path = "/home/phst757c/ALASKA3"
+home_path = "/home/phst757c/ALASKA2"
 train_path = "/projects/p_ml_steg_steigler/ALASKA2/train"
 
 img_width = 512
