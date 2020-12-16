@@ -8,7 +8,8 @@ import tensorflow.keras.applications.efficientnet as efn
 AUTOTUNE = tf.data.experimental.AUTOTUNE
 
 home_path = pathlib.Path("/home/phst757c/ALASKA3")
-train_path = pathlib.Path("/projects/p_ml_steg_steigler/ALASKA2/train")
+#train_path = pathlib.Path("/projects/p_ml_steg_steigler/ALASKA2/train")
+train_path = pathlib.Path("/Users/philipp/ALASKA2/train")
 
 image_count = len(list(train_path.glob("*/*.jpg")))
 class_names = np.array(sorted([item.name for item in train_path.glob("*") if item.name != ".DS_Store"]))
@@ -29,9 +30,9 @@ def decode_img(img):
 
 def process_path(file_path):
   label = get_label(file_path)
-  img = tf.io.read_file(file_path)
-  img = decode_img(img)
-  return img, label
+  image = tf.io.read_file(file_path)
+  image = decode_img(image)
+  return tf.data.Dataset.from_tensors((image, label))
 
 def get_model():
   model = keras.Sequential()
@@ -82,7 +83,7 @@ class PrintLR(keras.callbacks.Callback):
 if __name__ == "__main__":
   # Define distribution stategy
   strategy = tf.distribute.MirroredStrategy()
-  print("Number of devices: ", strategy.num_replicas_in_sync)
+  print("Number of GPUs: ", strategy.num_replicas_in_sync)
   
   # Prepare dataset
   print("Classes: ", class_names)
@@ -95,10 +96,10 @@ if __name__ == "__main__":
   train_ds = list_ds.skip(val_size)
   valid_ds = list_ds.take(val_size)
 
-  train_ds = train_ds.map(process_path, num_parallel_calls=AUTOTUNE)
-  valid_ds = valid_ds.map(process_path, num_parallel_calls=AUTOTUNE)
+  train_ds = train_ds.interleave(process_path, cycle_length=4, num_parallel_calls=AUTOTUNE, deterministic=False)
+  valid_ds = valid_ds.interleave(process_path, cycle_length=4, num_parallel_calls=AUTOTUNE, deterministic=False)
 
-  train_ds = train_ds.cache().shuffle(buffer_size=AUTOTUNE).batch(batch_size).prefetch(buffer_size=AUTOTUNE)
+  train_ds = train_ds.cache().shuffle(buffer_size=2000).batch(batch_size).prefetch(buffer_size=AUTOTUNE)
   valid_ds = valid_ds.batch(batch_size).prefetch(buffer_size=AUTOTUNE)
 
   with strategy.scope():
