@@ -1,9 +1,11 @@
 import os
 import pathlib
 import numpy as np
+
 import tensorflow as tf
+from tensorflow import keras
+import tensorflow.keras.applications.efficientnet as efn
 AUTOTUNE = tf.data.experimental.AUTOTUNE
-from utils import model
 
 home_path = pathlib.Path("/home/phst757c/ALASKA3")
 train_path = pathlib.Path("/projects/p_ml_steg_steigler/ALASKA2/train")
@@ -38,6 +40,38 @@ def configure_for_performance(ds):
   ds = ds.prefetch(buffer_size=AUTOTUNE)
   return ds
 
+def get_model():
+  model = keras.Sequential()
+
+  # Load EfficientNet as base
+  conv_base = efn.EfficientNetB3(
+    weights="imagenet",
+    include_top=False,
+    input_shape=(img_height, img_width, 3)
+  )
+  model.add(conv_base)
+
+  # Add custom top layers for classification
+  model.add(keras.layers.GlobalAveragePooling2D())
+  model.add(keras.layers.Dropout(0.25))
+  model.add(keras.layers.Dense(len(class_names), activation="softmax"))
+
+  # Finally compile the model
+  model.compile(
+    optimizer="adam",
+    loss="categorical_crossentropy",
+    metrics=[
+      keras.metrics.CategoricalAccuracy(name="CatAcc"),
+      keras.metrics.AUC(name="AUC"),
+      keras.metrics.TruePositives(name="TP"),
+      keras.metrics.FalsePositives(name="FP"),
+      keras.metrics.TrueNegatives(name="TN"),
+      keras.metrics.FalseNegatives(name="FN")
+    ]
+  )
+
+  return model
+
 if __name__ == "__main__":
   print("Classes: ", class_names)
   print("Total images: ", image_count)
@@ -56,21 +90,21 @@ if __name__ == "__main__":
   valid_ds = configure_for_performance(valid_ds)
 
   # Load model
-  model = model.get_model(img_width, img_height, len(class_names))
+  model = get_model()
   print(model.summary())
 
   # Create a callback that saves the model's weights
-  checkpoint_path = home_path + "/saves/session-01/cp-{epoch:04d}.ckpt"
+  checkpoint_path = home_path/"saves/session-01/cp-{epoch:04d}.ckpt"
   cp_callback = tf.keras.callbacks.ModelCheckpoint(
     filepath=checkpoint_path,
     save_weights_only=True,
-    save_freq=len(train_files) // batch_size,
+    save_freq=(image_count-valid_ds) // batch_size,
     verbose=1
   )
 
   """
   # Load weights from previous session
-  checkpoint_dir = home_path + "/saves/session-01/"
+  checkpoint_dir = home_path/"saves/session-01/"
   latest = tf.train.latest_checkpoint(checkpoint_dir)
   model.load_weights(latest)
   """
