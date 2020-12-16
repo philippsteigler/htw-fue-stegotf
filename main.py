@@ -95,11 +95,11 @@ if __name__ == "__main__":
   train_ds = list_ds.skip(val_size)
   valid_ds = list_ds.take(val_size)
 
-  train_ds = train_ds.interleave(process_path, cycle_length=4, num_parallel_calls=AUTOTUNE, deterministic=False)
-  valid_ds = valid_ds.interleave(process_path, cycle_length=4, num_parallel_calls=AUTOTUNE, deterministic=False)
+  train_ds = train_ds.interleave(process_path, num_parallel_calls=AUTOTUNE, deterministic=False)
+  valid_ds = valid_ds.interleave(process_path, num_parallel_calls=AUTOTUNE, deterministic=False)
 
-  train_ds = train_ds.cache().shuffle(buffer_size=2000).batch(batch_size).prefetch(buffer_size=AUTOTUNE)
-  valid_ds = valid_ds.batch(batch_size).prefetch(buffer_size=AUTOTUNE)
+  train_ds = train_ds.cache().batch(batch_size).repeat(epochs).prefetch(buffer_size=AUTOTUNE)
+  valid_ds = valid_ds.batch(batch_size).repeat(epochs).prefetch(buffer_size=AUTOTUNE)
 
   with strategy.scope():
     # Load model
@@ -131,10 +131,9 @@ if __name__ == "__main__":
     # Start training
     model.fit(
       train_ds,
+      steps_per_epoch=(image_count-val_size),
       validation_data=valid_ds,
+      validation_steps=val_size,
       epochs=epochs,
-      callbacks=callbacks,
-      max_queue_size=128,
-      use_multiprocessing=True,
-      workers=8
+      callbacks=callbacks
     )
