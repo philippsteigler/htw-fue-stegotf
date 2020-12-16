@@ -65,16 +65,16 @@ def get_model():
 
   return model
 
-# Function for decaying the learning rate.
+# Function for decaying the learning rate
 def decay(epoch):
-  if epoch < 3:
+  if epoch < 4:
     return 1e-3
-  elif epoch >= 3 and epoch < 7:
+  elif epoch >= 4 and epoch < 12:
     return 1e-4
   else:
     return 1e-5
 
-# Callback for printing the LR at the end of each epoch.
+# Callback for printing the LR at the end of each epoch
 class PrintLR(keras.callbacks.Callback):
   def on_epoch_end(self, epoch, logs=None):
     print("Learning rate for epoch {} is {}".format(epoch + 1, model.optimizer.lr.numpy()))
