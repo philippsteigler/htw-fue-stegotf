@@ -31,7 +31,7 @@ def process_path(file_path):
   label = get_label(file_path)
   image = tf.io.read_file(file_path)
   image = decode_img(image)
-  return tf.data.Dataset.from_tensors((image, label))
+  return image, label
 
 def get_model():
   model = keras.Sequential()
@@ -95,8 +95,8 @@ if __name__ == "__main__":
   train_ds = list_ds.skip(val_size)
   valid_ds = list_ds.take(val_size)
 
-  train_ds = train_ds.interleave(process_path, num_parallel_calls=AUTOTUNE, deterministic=False)
-  valid_ds = valid_ds.interleave(process_path, num_parallel_calls=AUTOTUNE, deterministic=False)
+  train_ds = train_ds.map(process_path, num_parallel_calls=AUTOTUNE)
+  valid_ds = valid_ds.map(process_path, num_parallel_calls=AUTOTUNE)
 
   train_ds = train_ds.cache().batch(batch_size).repeat(epochs).prefetch(buffer_size=AUTOTUNE)
   valid_ds = valid_ds.batch(batch_size).repeat(epochs).prefetch(buffer_size=AUTOTUNE)
