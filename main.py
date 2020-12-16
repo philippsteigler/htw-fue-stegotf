@@ -131,9 +131,9 @@ if __name__ == "__main__":
     # Start training
     model.fit(
       train_ds,
-      steps_per_epoch=(image_count-val_size),
+      steps_per_epoch=(image_count-val_size) // batch_size,
       validation_data=valid_ds,
-      validation_steps=val_size,
+      validation_steps=val_size // batch_size,
       epochs=epochs,
       callbacks=callbacks
     )
