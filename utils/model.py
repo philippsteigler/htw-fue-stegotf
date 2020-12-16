@@ -1,7 +1,7 @@
 from tensorflow import keras
 import tensorflow.keras.applications.efficientnet as efn
 
-def get_model(img_width, img_height):
+def get_model(img_width, img_height, num_classes):
   model = keras.Sequential()
 
   # Load EfficientNet as base
@@ -15,7 +15,7 @@ def get_model(img_width, img_height):
   # Add custom top layers for classification
   model.add(keras.layers.GlobalAveragePooling2D())
   model.add(keras.layers.Dropout(0.25))
-  model.add(keras.layers.Dense(4, activation="softmax"))
+  model.add(keras.layers.Dense(num_classes, activation="softmax"))
 
   # Finally compile the model
   model.compile(
