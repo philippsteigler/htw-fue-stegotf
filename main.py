@@ -73,45 +73,49 @@ def get_model():
   return model
 
 if __name__ == "__main__":
-  print("Classes: ", class_names)
-  print("Total images: ", image_count)
+  strategy = tf.distribute.MirroredStrategy()
+  with strategy.scope():
+    print("Classes: ", class_names)
+    print("Total images: ", image_count)
 
-  list_ds = tf.data.Dataset.list_files(str(train_path/"*/*"), shuffle=False)
-  list_ds = list_ds.shuffle(image_count, reshuffle_each_iteration=False)
+    list_ds = tf.data.Dataset.list_files(str(train_path/"*/*"), shuffle=False)
+    list_ds = list_ds.shuffle(image_count, reshuffle_each_iteration=False)
 
-  val_size = int(image_count * 0.1)
-  train_ds = list_ds.skip(val_size)
-  valid_ds = list_ds.take(val_size)
+    val_size = int(image_count * 0.1)
+    train_ds = list_ds.skip(val_size)
+    valid_ds = list_ds.take(val_size)
 
-  train_ds = train_ds.map(process_path, num_parallel_calls=AUTOTUNE)
-  valid_ds = valid_ds.map(process_path, num_parallel_calls=AUTOTUNE)
+    train_ds = train_ds.map(process_path, num_parallel_calls=AUTOTUNE)
+    valid_ds = valid_ds.map(process_path, num_parallel_calls=AUTOTUNE)
 
-  train_ds = configure_for_performance(train_ds)
-  valid_ds = configure_for_performance(valid_ds)
+    train_ds = configure_for_performance(train_ds)
+    valid_ds = configure_for_performance(valid_ds)
 
-  # Load model
-  model = get_model()
-  print(model.summary())
+    # Load model
+    model = get_model()
+    print(model.summary())
 
-  # Create a callback that saves the model's weights
-  checkpoint_path = home_path/"saves/session-01/cp-{epoch:04d}.ckpt"
-  cp_callback = tf.keras.callbacks.ModelCheckpoint(
-    filepath=checkpoint_path,
-    save_weights_only=True,
-    save_freq=(image_count-val_size) // batch_size,
-    verbose=1
-  )
+    # Create a callback that saves the model's weights
+    checkpoint_path = home_path/"saves/session-01/cp-{epoch:04d}.ckpt"
+    cp_callback = tf.keras.callbacks.ModelCheckpoint(
+      filepath=checkpoint_path,
+      save_weights_only=True,
+      save_freq=(image_count-val_size) // batch_size,
+      verbose=1
+    )
 
-  """
-  # Load weights from previous session
-  checkpoint_dir = home_path/"saves/session-01/"
-  latest = tf.train.latest_checkpoint(checkpoint_dir)
-  model.load_weights(latest)
-  """
+    """
+    # Load weights from previous session
+    checkpoint_dir = home_path/"saves/session-01/"
+    latest = tf.train.latest_checkpoint(checkpoint_dir)
+    model.load_weights(latest)
+    """
 
-  # Start training
-  model.fit(
-    train_ds,
-    validation_data=valid_ds,
-    epochs=epochs
-  )
+    # Start training
+    model.fit(
+      train_ds,
+      validation_data=valid_ds,
+      epochs=epochs,
+      callbacks=[cp_callback],
+      max_queue_size=40,
+    )
