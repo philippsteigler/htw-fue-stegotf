@@ -8,7 +8,7 @@ import tensorflow.keras.applications.efficientnet as efn
 AUTOTUNE = tf.data.experimental.AUTOTUNE
 
 home_path = pathlib.Path("/home/phst757c/ALASKA3")
-train_path = pathlib.Path("/projects/p_ml_steg_steigler/ALASKA2/train")
+train_path = pathlib.Path("/Users/philipp/ALASKA2/train")
 
 image_count = len(list(train_path.glob("*/*.jpg")))
 class_names = np.array(sorted([item.name for item in train_path.glob("*") if item.name != ".DS_Store"]))
@@ -98,7 +98,7 @@ if __name__ == "__main__":
   cp_callback = tf.keras.callbacks.ModelCheckpoint(
     filepath=checkpoint_path,
     save_weights_only=True,
-    save_freq=(image_count-valid_ds) // batch_size,
+    save_freq=(image_count-val_size) // batch_size,
     verbose=1
   )
 
