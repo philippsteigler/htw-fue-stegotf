@@ -98,7 +98,7 @@ if __name__ == "__main__":
   train_ds = train_ds.map(process_path, num_parallel_calls=AUTOTUNE)
   valid_ds = valid_ds.map(process_path, num_parallel_calls=AUTOTUNE)
 
-  train_ds = train_ds.cache().batch(batch_size).repeat(epochs).prefetch(buffer_size=AUTOTUNE)
+  train_ds = train_ds.cache().shuffle(buffer_size=1000).batch(batch_size).repeat(epochs).prefetch(buffer_size=AUTOTUNE)
   valid_ds = valid_ds.batch(batch_size).repeat(epochs).prefetch(buffer_size=AUTOTUNE)
 
   with strategy.scope():
