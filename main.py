@@ -57,7 +57,7 @@ if __name__ == "__main__":
       validation_steps=len(valid_files) // batch_size,
       epochs=epochs,
       callbacks=callbacks,
-      max_queue_size=256,
+      max_queue_size=128,
       use_multiprocessing=True,
       workers=8
     )
