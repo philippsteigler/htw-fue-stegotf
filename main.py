@@ -59,5 +59,5 @@ if __name__ == "__main__":
       callbacks=callbacks,
       max_queue_size=64,
       use_multiprocessing=True,
-      workers=4
+      workers=8
     )
