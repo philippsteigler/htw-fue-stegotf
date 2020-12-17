@@ -2,6 +2,7 @@ import os
 import pathlib
 import numpy as np
 
+
 import tensorflow as tf
 from tensorflow import keras
 import tensorflow.keras.applications.efficientnet as efn
@@ -37,7 +38,7 @@ def get_model():
   model = keras.Sequential()
 
   # Load EfficientNet as base
-  conv_base = efn.EfficientNetB3(
+  conv_base = efn.EfficientNetB0(
     weights="imagenet",
     include_top=False,
     input_shape=(img_height, img_width, 3)
