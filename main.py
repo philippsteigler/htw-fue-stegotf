@@ -102,7 +102,7 @@ if __name__ == "__main__":
     print(model.summary())
 
     # Create a callback that saves the model's weights
-    checkpoint_path = home_path + "saves/session-01/cp-{epoch:04d}.ckpt"
+    checkpoint_path = home_path + "/saves/session-01/cp-{epoch:04d}.ckpt"
     cp_callback = keras.callbacks.ModelCheckpoint(
       filepath=checkpoint_path,
       save_weights_only=True,
@@ -112,7 +112,7 @@ if __name__ == "__main__":
 
     """
     # Load weights from previous session
-    checkpoint_dir = home_path + "saves/session-01/"
+    checkpoint_dir = home_path + "/saves/session-01/"
     latest = tf.train.latest_checkpoint(checkpoint_dir)
     model.load_weights(latest)
     """
