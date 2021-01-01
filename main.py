@@ -73,20 +73,6 @@ def get_model(num_classes):
 
   return model
 
-# Function for decaying the learning rate
-def decay(epoch):
-  if epoch < 4:
-    return 1e-3
-  elif epoch >= 4 and epoch < 12:
-    return 1e-4
-  else:
-    return 1e-5
-
-# Callback for printing the LR at the end of each epoch
-class PrintLR(keras.callbacks.Callback):
-  def on_epoch_end(self, epoch, logs=None):
-    print("Learning rate for epoch {} is {}".format(epoch + 1, model.optimizer.lr.numpy()))
-
 if __name__ == "__main__":
   # Define distribution stategy
   strategy = tf.distribute.MirroredStrategy()
@@ -117,12 +103,6 @@ if __name__ == "__main__":
     model.load_weights(latest)
     """
 
-    callbacks=[
-      cp_callback,
-      keras.callbacks.LearningRateScheduler(decay),
-      PrintLR()
-    ]
-
     # Start training
     model.fit(
       train_gen,
@@ -130,7 +110,7 @@ if __name__ == "__main__":
       validation_data=valid_gen,
       validation_steps=valid_gen.samples // batch_size,
       epochs=epochs,
-      callbacks=callbacks,
+      callbacks=[cp_callback],
       max_queue_size=64,
       use_multiprocessing=True,
       workers=16
