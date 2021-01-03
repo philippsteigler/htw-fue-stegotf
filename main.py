@@ -13,13 +13,13 @@ train_path = "/projects/p_ml_steg_steigler/ALASKA2/train"
 img_width = 512
 img_height = 512
 batch_size = 32
-epochs = 20
+epochs = 50
 
 def get_generators():
   image_datagen = keras.preprocessing.image.ImageDataGenerator(
     rescale=1./255,
-    horizontal_flip=False,
-    vertical_flip=False,
+    horizontal_flip=True,
+    vertical_flip=True,
     validation_split=0.1
   )
 
@@ -45,7 +45,7 @@ def get_model(num_classes):
   model = keras.Sequential()
 
   # Load EfficientNet as base
-  conv_base = efn.EfficientNetB0(
+  conv_base = efn.EfficientNetB2(
     weights="imagenet",
     include_top=False,
     input_shape=(img_height, img_width, 3)
@@ -54,7 +54,7 @@ def get_model(num_classes):
 
   # Add custom top layers for classification
   model.add(keras.layers.GlobalAveragePooling2D())
-  model.add(keras.layers.Dropout(0.25))
+  model.add(keras.layers.Dropout(0.2))
   model.add(keras.layers.Dense(num_classes, activation="softmax"))
 
   # Finally compile the model
@@ -101,14 +101,12 @@ if __name__ == "__main__":
       save_freq=train_gen.samples // batch_size,
       verbose=1
     )
-
     """
     # Load weights from previous session
     checkpoint_dir = home_path + "/saves/session-01/"
     latest = tf.train.latest_checkpoint(checkpoint_dir)
     model.load_weights(latest)
     """
-
     # Start training
     model.fit(
       train_gen,
