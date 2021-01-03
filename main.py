@@ -71,7 +71,7 @@ def get_model(num_classes):
       keras.metrics.Recall(name="Rec C0", class_id=0),
       keras.metrics.Recall(name="Rec C1", class_id=1),
       keras.metrics.Recall(name="Rec C2", class_id=2),
-      keras.metrics.Recall(name="Rec C3", class_id=3),
+      keras.metrics.Recall(name="Rec C3", class_id=3)
     ]
   )
 
