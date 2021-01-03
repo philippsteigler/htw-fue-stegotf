@@ -64,6 +64,8 @@ def get_model(num_classes):
     metrics=[
       keras.metrics.CategoricalAccuracy(name="CatAcc"),
       keras.metrics.AUC(name="AUC"),
+      keras.metrics.Precision(name="Global Pre"),
+      keras.metrics.Recall(name="Global Rec"),
       keras.metrics.Precision(name="Pre C0", class_id=0),
       keras.metrics.Precision(name="Pre C1", class_id=1),
       keras.metrics.Precision(name="Pre C2", class_id=2),
