@@ -64,10 +64,14 @@ def get_model(num_classes):
     metrics=[
       keras.metrics.CategoricalAccuracy(name="CatAcc"),
       keras.metrics.AUC(name="AUC"),
-      keras.metrics.TruePositives(name="TP"),
-      keras.metrics.FalsePositives(name="FP"),
-      keras.metrics.TrueNegatives(name="TN"),
-      keras.metrics.FalseNegatives(name="FN")
+      keras.metrics.Precision(name="Pre C0", class_id=0),
+      keras.metrics.Precision(name="Pre C1", class_id=1),
+      keras.metrics.Precision(name="Pre C2", class_id=2),
+      keras.metrics.Precision(name="Pre C3", class_id=3),
+      keras.metrics.Recall(name="Rec C0", class_id=0),
+      keras.metrics.Recall(name="Rec C1", class_id=1),
+      keras.metrics.Recall(name="Rec C2", class_id=2),
+      keras.metrics.Recall(name="Rec C3", class_id=3),
     ]
   )
 
