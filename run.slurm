@@ -12,6 +12,5 @@
 module load modenv/ml
 module load TensorFlow
 module load Pillow
-module load scikit-learn
 
 python3 main.py
