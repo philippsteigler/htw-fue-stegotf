@@ -17,7 +17,7 @@ epochs = 50
 
 # https://stackoverflow.com/questions/63580476/how-to-compute-auc-for-one-class-in-multi-class-classification-in-keras
 class MulticlassAUC(tf.keras.metrics.AUC):
-  def __init__(self, pos_label, from_logits=False, sparse=True, **kwargs):
+  def __init__(self, pos_label, from_logits=False, sparse=False, **kwargs):
     super().__init__(**kwargs)
 
     self.pos_label = pos_label
@@ -86,20 +86,20 @@ def get_model(num_classes):
     metrics=[
       keras.metrics.CategoricalAccuracy(name="Acc"),
       keras.metrics.AUC(name="AUC"),
-      MulticlassAUC(pos_label=0, name="AUC C0"),
-      MulticlassAUC(pos_label=1, name="AUC C1"),
-      MulticlassAUC(pos_label=2, name="AUC C2"),
-      MulticlassAUC(pos_label=3, name="AUC C3"),
+      MulticlassAUC(name="AUC-C0", pos_label=0),
+      MulticlassAUC(name="AUC-C1", pos_label=1),
+      MulticlassAUC(name="AUC-C2", pos_label=2),
+      MulticlassAUC(name="AUC-C3", pos_label=3),
       keras.metrics.Precision(name="Pre"),
-      keras.metrics.Precision(name="Pre C0", class_id=0),
-      keras.metrics.Precision(name="Pre C1", class_id=1),
-      keras.metrics.Precision(name="Pre C2", class_id=2),
-      keras.metrics.Precision(name="Pre C3", class_id=3),
+      keras.metrics.Precision(name="Pre-C0", class_id=0),
+      keras.metrics.Precision(name="Pre-C1", class_id=1),
+      keras.metrics.Precision(name="Pre-C2", class_id=2),
+      keras.metrics.Precision(name="Pre-C3", class_id=3),
       keras.metrics.Recall(name="Rec"),
-      keras.metrics.Recall(name="Rec C0", class_id=0),
-      keras.metrics.Recall(name="Rec C1", class_id=1),
-      keras.metrics.Recall(name="Rec C2", class_id=2),
-      keras.metrics.Recall(name="Rec C3", class_id=3)
+      keras.metrics.Recall(name="Rec-C0", class_id=0),
+      keras.metrics.Recall(name="Rec-C1", class_id=1),
+      keras.metrics.Recall(name="Rec-C2", class_id=2),
+      keras.metrics.Recall(name="Rec-C3", class_id=3)
     ]
   )
 
@@ -129,7 +129,7 @@ if __name__ == "__main__":
     )
     """
     # Load weights from previous session
-    checkpoint_dir = home_path + "/saves/session-01/"
+    checkpoint_dir = home_path + "/saves/session-01"
     latest = tf.train.latest_checkpoint(checkpoint_dir)
     model.load_weights(latest)
     """
