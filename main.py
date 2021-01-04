@@ -142,7 +142,7 @@ if __name__ == "__main__":
       validation_data=valid_gen,
       validation_steps=valid_gen.samples // batch_size,
       epochs=epochs,
-      callbacks=[cp_callback],
+      callbacks=[tb_callback, cp_callback],
       max_queue_size=64,
       use_multiprocessing=True,
       workers=16
