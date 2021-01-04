@@ -15,6 +15,28 @@ img_height = 512
 batch_size = 32
 epochs = 50
 
+# https://stackoverflow.com/questions/63580476/how-to-compute-auc-for-one-class-in-multi-class-classification-in-keras
+class MulticlassAUC(tf.keras.metrics.AUC):
+  def __init__(self, pos_label, from_logits=False, sparse=True, **kwargs):
+    super().__init__(**kwargs)
+
+    self.pos_label = pos_label
+    self.from_logits = from_logits
+    self.sparse = sparse
+
+  def update_state(self, y_true, y_pred, **kwargs):
+    if self.sparse:
+        y_true = tf.math.equal(y_true, self.pos_label)
+        y_true = tf.squeeze(y_true)
+    else:
+        y_true = y_true[..., self.pos_label]
+
+    if self.from_logits:
+        y_pred = tf.nn.softmax(y_pred, axis=-1)
+    y_pred = y_pred[..., self.pos_label]
+
+    super().update_state(y_true, y_pred, **kwargs)
+
 def get_generators():
   image_datagen = keras.preprocessing.image.ImageDataGenerator(
     rescale=1./255,
@@ -63,13 +85,17 @@ def get_model(num_classes):
     loss="categorical_crossentropy",
     metrics=[
       keras.metrics.CategoricalAccuracy(name="Acc"),
-      keras.metrics.AUC(name="AUC"),
+      keras.metrics.AUC(name="Global AUC"),
+      MulticlassAUC(pos_label=0, name="AUC C0"),
+      MulticlassAUC(pos_label=1, name="AUC C1"),
+      MulticlassAUC(pos_label=2, name="AUC C2"),
+      MulticlassAUC(pos_label=3, name="AUC C3"),
       keras.metrics.Precision(name="Global Pre"),
-      keras.metrics.Recall(name="Global Rec"),
       keras.metrics.Precision(name="Pre C0", class_id=0),
       keras.metrics.Precision(name="Pre C1", class_id=1),
       keras.metrics.Precision(name="Pre C2", class_id=2),
       keras.metrics.Precision(name="Pre C3", class_id=3),
+      keras.metrics.Recall(name="Global Rec"),
       keras.metrics.Recall(name="Rec C0", class_id=0),
       keras.metrics.Recall(name="Rec C1", class_id=1),
       keras.metrics.Recall(name="Rec C2", class_id=2),
