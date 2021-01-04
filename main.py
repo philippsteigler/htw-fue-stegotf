@@ -85,17 +85,17 @@ def get_model(num_classes):
     loss="categorical_crossentropy",
     metrics=[
       keras.metrics.CategoricalAccuracy(name="Acc"),
-      keras.metrics.AUC(name="Global AUC"),
+      keras.metrics.AUC(name="AUC"),
       MulticlassAUC(pos_label=0, name="AUC C0"),
       MulticlassAUC(pos_label=1, name="AUC C1"),
       MulticlassAUC(pos_label=2, name="AUC C2"),
       MulticlassAUC(pos_label=3, name="AUC C3"),
-      keras.metrics.Precision(name="Global Pre"),
+      keras.metrics.Precision(name="Pre"),
       keras.metrics.Precision(name="Pre C0", class_id=0),
       keras.metrics.Precision(name="Pre C1", class_id=1),
       keras.metrics.Precision(name="Pre C2", class_id=2),
       keras.metrics.Precision(name="Pre C3", class_id=3),
-      keras.metrics.Recall(name="Global Rec"),
+      keras.metrics.Recall(name="Rec"),
       keras.metrics.Recall(name="Rec C0", class_id=0),
       keras.metrics.Recall(name="Rec C1", class_id=1),
       keras.metrics.Recall(name="Rec C2", class_id=2),
@@ -133,6 +133,8 @@ if __name__ == "__main__":
     latest = tf.train.latest_checkpoint(checkpoint_dir)
     model.load_weights(latest)
     """
+    tb_callback = tf.keras.callbacks.TensorBoard(log_dir=home_path + "/logs/session-01", histogram_freq=1)
+
     # Start training
     model.fit(
       train_gen,
