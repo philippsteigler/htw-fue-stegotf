@@ -1,7 +1,4 @@
 import os
-import pathlib
-import numpy as np
-
 import tensorflow as tf
 from tensorflow import keras
 import tensorflow.keras.applications.efficientnet as efn
