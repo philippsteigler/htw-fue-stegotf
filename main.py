@@ -13,7 +13,8 @@ train_path = "/projects/p_ml_steg_steigler/ALASKA2/train"
 img_width = 512
 img_height = 512
 batch_size = 32
-epochs = 50
+epochs = 100
+initial_epoch = 50 # Adjust to continue on previouse session!
 
 # https://stackoverflow.com/questions/63580476/how-to-compute-auc-for-one-class-in-multi-class-classification-in-keras
 class MulticlassAUC(tf.keras.metrics.AUC):
@@ -120,20 +121,21 @@ if __name__ == "__main__":
     print(model.summary())
 
     # Create a callback that saves the model's weights
-    checkpoint_path = home_path + "/saves/session-01/cp-{epoch:04d}.ckpt"
+    checkpoint_path = home_path + "/saves/cp-{epoch:04d}.ckpt"
     cp_callback = keras.callbacks.ModelCheckpoint(
       filepath=checkpoint_path,
       save_weights_only=True,
       save_freq=train_gen.samples // batch_size,
       verbose=1
     )
-    """
+    
     # Load weights from previous session
-    checkpoint_dir = home_path + "/saves/session-01"
-    latest = tf.train.latest_checkpoint(checkpoint_dir)
-    model.load_weights(latest)
-    """
-    tb_callback = tf.keras.callbacks.TensorBoard(log_dir=home_path + "/logs/session-01", histogram_freq=1)
+    if initial_epoch > 0:
+      checkpoint_dir = home_path + "/saves"
+      latest = tf.train.latest_checkpoint(checkpoint_dir)
+      model.load_weights(latest)
+    
+    tb_callback = tf.keras.callbacks.TensorBoard(log_dir=home_path + "/logs", histogram_freq=1)
 
     # Start training
     model.fit(
@@ -142,6 +144,7 @@ if __name__ == "__main__":
       validation_data=valid_gen,
       validation_steps=valid_gen.samples // batch_size,
       epochs=epochs,
+      initial_epoch=initial_epoch,
       callbacks=[tb_callback, cp_callback],
       max_queue_size=64,
       use_multiprocessing=True,
