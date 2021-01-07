@@ -5,7 +5,6 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 import tensorflow.keras.applications.efficientnet as efn
-AUTOTUNE = tf.data.experimental.AUTOTUNE
 
 home_path = "/home/phst757c/ALASKA2"
 train_path = "/projects/p_ml_steg_steigler/ALASKA2/train"
